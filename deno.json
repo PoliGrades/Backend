@@ -1,0 +1,10 @@
+{
+    "tasks": {
+        "dev": "deno run --allow-net ./src/main.ts"
+    },
+    "imports": {
+        "@types/express": "npm:@types/express@^5.0.1",
+        "drizzle-kit": "npm:drizzle-kit@^0.31.0",
+        "express": "npm:express@^5.1.0"
+    }
+}
