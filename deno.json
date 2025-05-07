@@ -6,9 +6,12 @@
         "@langchain/core": "npm:@langchain/core@^0.3.53",
         "@langchain/langgraph": "npm:@langchain/langgraph@^0.2.68",
         "@types/express": "npm:@types/express@^5.0.1",
+        "cors": "npm:cors@^2.8.5",
         "drizzle-kit": "npm:drizzle-kit@^0.31.0",
         "express": "npm:express@^5.1.0",
         "@langchain/mistralai": "npm:@langchain/mistralai@^0.2.0",
+        "socket.io": "npm:socket.io@^4.8.1",
+        "socket.io-client": "npm:socket.io-client@^4.8.1",
         "uuid": "npm:uuid@^11.1.0",
         "zod": "npm:zod@^3.24.4"
     }
