@@ -1,5 +1,6 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
+import { io } from "../main.ts";
 
 const orders = [
     {
@@ -17,9 +18,9 @@ const orders = [
 ]
 
 const availableItems = [
-    { id: 1, name: 'Item 1', price: 10.0 },
-    { id: 2, name: 'Item 2', price: 5.0 },
-    { id: 3, name: 'Item 3', price: 15.0 },
+    { id: 1, name: 'Hamburguer', price: 10.0 },
+    { id: 2, name: 'Pizza', price: 5.0 },
+    { id: 3, name: 'Salada', price: 15.0 },
 ]
 
 export const cancelOrder = tool(
@@ -42,7 +43,7 @@ export const cancelOrder = tool(
 )
 
 export const createOrder = tool(
-    ({ items }: { items: string[] }) => {
+    async ({ items }: { items: string[] }) => {
         // Parse the items from the input, the input is a string with the item names
         const parsedItems = items.map(itemName => {
             const item = availableItems.find(i => i.name.toLowerCase() === itemName.toLowerCase());
@@ -56,7 +57,7 @@ export const createOrder = tool(
         if (parsedItems.length === 0) {
             return `Nenhum item encontrado.`;
         }
-
+        
         const newOrder = {
             id: orders.length + 1,
             name: `Order ${orders.length + 1}`,
@@ -66,9 +67,11 @@ export const createOrder = tool(
             createdAt: new Date(),
             updatedAt: new Date(),
         };
-
-        orders.push(newOrder);
-        return `Pedido criado com sucesso! ID do pedido: ${newOrder.id}`;
+        
+        io.emit("message", JSON.stringify({
+            type: "order",
+            order: newOrder, 
+        }));
     },
     {
         name: "criarPedido",

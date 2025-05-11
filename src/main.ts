@@ -11,7 +11,7 @@ app.use(cors({
 }));
 
 const wsServer = createServer(app);
-const io = new Server(wsServer, {
+export const io = new Server(wsServer, {
   cors: {
     origin: "*",
   },
@@ -22,14 +22,12 @@ app.get("/", (_req, res) => {
 });
 
 io.on("connection", (socket) => {
+  const pendingConfirmations = new Map();
+  
   socket.on("message", async (e) => {
     await addMessage(e).then((final) => {
       socket.emit("message", final);
     });
-
-    // setTimeout(() => {
-    //   socket.emit("message", "Olá, tudo bem? Como posso ajudar?");
-    // }, 3000);
   });
 
   socket.emit("message", JSON.stringify({
@@ -37,6 +35,15 @@ io.on("connection", (socket) => {
       message: "Olá, tudo bem ?, bem vindo ao PoliEats! Sou um assistente virtual e estou aqui para te ajudar com o que você precisar. Você pode me perguntar sobre o cardápio, horários de funcionamento, fazer pedidos e consultar o status dos pedidos em andamento. Como posso te ajudar hoje? 🤗",
     })
   );
+
+  socket.on("order_confirmation", (e) => {
+    const { orderId, confirmation } = e;
+    if (pendingConfirmations.has(orderId)) {
+      const resolve = pendingConfirmations.get(orderId);
+      pendingConfirmations.delete(orderId);
+      resolve(confirmation);
+    }
+  })
 });
 
 wsServer.listen(8000);
