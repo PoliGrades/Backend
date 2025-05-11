@@ -1,19 +1,19 @@
 import express from "express";
-import { Server } from "npm:socket.io";
 import { createServer } from "node:http";
 import cors from "npm:cors";
+import { Server } from "npm:socket.io";
 import { addMessage } from "./lc/model.ts";
 
 const app = express();
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "*",
 }));
 
 const wsServer = createServer(app);
 const io = new Server(wsServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "*",
   },
 });
 
@@ -26,7 +26,17 @@ io.on("connection", (socket) => {
     await addMessage(e).then((final) => {
       socket.emit("message", final);
     });
+
+    // setTimeout(() => {
+    //   socket.emit("message", "Olá, tudo bem? Como posso ajudar?");
+    // }, 3000);
   });
+
+  socket.emit("message", JSON.stringify({
+      type: "welcome",
+      message: "Olá, tudo bem ?, bem vindo ao PoliEats! Sou um assistente virtual e estou aqui para te ajudar com o que você precisar. Você pode me perguntar sobre o cardápio, horários de funcionamento, fazer pedidos e consultar o status dos pedidos em andamento. Como posso te ajudar hoje? 🤗",
+    })
+  );
 });
 
 wsServer.listen(8000);
