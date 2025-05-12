@@ -22,28 +22,20 @@ app.get("/", (_req, res) => {
 });
 
 io.on("connection", (socket) => {
-  const pendingConfirmations = new Map();
-  
   socket.on("message", async (e) => {
     await addMessage(e).then((final) => {
       socket.emit("message", final);
     });
   });
 
-  socket.emit("message", JSON.stringify({
+  socket.emit(
+    "message",
+    JSON.stringify({
       type: "welcome",
-      message: "Olá, tudo bem ?, bem vindo ao PoliEats! Sou um assistente virtual e estou aqui para te ajudar com o que você precisar. Você pode me perguntar sobre o cardápio, horários de funcionamento, fazer pedidos e consultar o status dos pedidos em andamento. Como posso te ajudar hoje? 🤗",
-    })
+      message:
+        "Olá, tudo bem ?, bem vindo ao PoliEats! Sou um assistente virtual e estou aqui para te ajudar com o que você precisar. Você pode me perguntar sobre o cardápio, horários de funcionamento, fazer pedidos e consultar o status dos pedidos em andamento. Como posso te ajudar hoje? 🤗",
+    }),
   );
-
-  socket.on("order_confirmation", (e) => {
-    const { orderId, confirmation } = e;
-    if (pendingConfirmations.has(orderId)) {
-      const resolve = pendingConfirmations.get(orderId);
-      pendingConfirmations.delete(orderId);
-      resolve(confirmation);
-    }
-  })
 });
 
 wsServer.listen(8000);

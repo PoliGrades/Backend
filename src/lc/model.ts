@@ -28,7 +28,7 @@ export async function addMessage(message: string) {
   messages.push(new HumanMessage(message));
 
   const firstResponse = await llmWithTools.invoke(messages);
-  
+
   // Check if the response contains a tool call
   if (firstResponse.tool_calls && firstResponse.tool_calls.length > 0) {
     messages.push(firstResponse);
@@ -41,7 +41,7 @@ export async function addMessage(message: string) {
     // Add the final response to the messages
     const finalResponse = await llmWithTools.invoke(messages);
     messages.push(finalResponse);
-    
+
     console.log(messages);
     return JSON.stringify({
       type: "response",
