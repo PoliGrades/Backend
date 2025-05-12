@@ -1,6 +1,6 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
-import { io } from "../main.ts";
+import { io, pendingConfirmation } from "../main.ts";
 
 const orders = [
   {
@@ -92,6 +92,24 @@ export const createOrder = tool(
         order: newOrder,
       }),
     );
+
+    const isConfirmed = await new Promise((resolve) => {
+      pendingConfirmation.set(newOrder.id, { resolve });
+      
+      setTimeout(() => {
+        if (pendingConfirmation.has(newOrder.id)) {
+          pendingConfirmation.delete(newOrder.id);
+          resolve(false);
+        }
+      }, 30000);
+    })
+
+    if (isConfirmed) {
+      orders.push(newOrder);
+      return `Pedido ${newOrder.id} criado com sucesso!`;
+    } else {
+      return `Pedido ${newOrder.id} não confirmado.`;
+    }
   },
   {
     name: "criarPedido",

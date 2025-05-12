@@ -21,11 +21,26 @@ app.get("/", (_req, res) => {
   res.send("Welcome to the Dinosaur API!");
 });
 
+export const pendingConfirmation = new Map();
+
 io.on("connection", (socket) => {
   socket.on("message", async (e) => {
     await addMessage(e).then((final) => {
       socket.emit("message", final);
     });
+  });
+
+  socket.on("order_confirmation", (e) => {
+    const { orderId, type } = JSON.parse(e);
+    if (pendingConfirmation.has(orderId)) {
+      const { resolve } = pendingConfirmation.get(orderId);
+      pendingConfirmation.delete(orderId);
+      if (type === "confirm") {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    }
   });
 
   socket.emit(
