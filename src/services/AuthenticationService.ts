@@ -1,5 +1,7 @@
+import bcrypt from "bcrypt";
 import { JWTPayload, jwtVerify, SignJWT } from "jose";
-import { user as userTable } from "../database/schema.ts";
+import { JWSInvalid } from "jose/errors";
+import { password as passwordTable, salt as saltTable, user as userTable } from "../database/schema.ts";
 import { IDatabase } from "../interfaces/IDatabase.ts";
 import { IUser } from "../interfaces/IUser.ts";
 
@@ -13,13 +15,26 @@ export class AuthenticationService {
         this.secretKey = new TextEncoder().encode("poli_eats");
     }
 
-    async registerUser(user: IUser): Promise<number> {
+    async registerUser(user: IUser, password: string): Promise<number> {
         const existingUser = await this.db.selectByField(userTable, "email", user.email);
         if (existingUser.length > 0) {
             throw new Error("User already exists");
         }
-
+ 
         const newUser = await this.db.insert(userTable, user);
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        
+        await this.db.insert(passwordTable, {
+            userId: newUser.id,
+            password: hashedPassword,
+        });
+
+        await this.db.insert(saltTable, {
+            userId: newUser.id,
+            salt: salt,
+        });
         return newUser.id;
     }
 
@@ -48,19 +63,32 @@ export class AuthenticationService {
         try {
             const { payload } = await jwtVerify(token, this.secretKey);
             return payload;
-        } catch (error) {
-            console.error("JWT verification failed:", error);
-            return null;
+        } catch (error: unknown) {
+            return error instanceof JWSInvalid ? null : Promise.reject(error);
         }
     }
 
     async loginUser(email: string, password: string): Promise<IUser | null> {
         const user = await this.db.selectByField(userTable, "email", email);
+
         if (!user) {
             throw new Error("User not found");
         }
 
-        if (user[0].password !== password) {
+        const userPassword = await this.db.selectByField(passwordTable, "userId", user[0].id);
+        if (!userPassword) {
+            throw new Error("User password not found");
+        }
+
+        const salt = await this.db.selectByField(saltTable, "userId", user[0].id);
+        
+        if (!salt) {
+            throw new Error("User salt not found");
+        }
+
+        const hashedPassword = await bcrypt.hash(password, salt[0].salt);
+
+        if (userPassword[0].password !== hashedPassword) {
             throw new Error("Invalid password");
         }
 

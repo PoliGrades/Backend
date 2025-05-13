@@ -5,11 +5,22 @@ export const user = pgTable("user", {
     name: text("name").notNull(),
     email: text("email").notNull().unique(),
     document: text("document").notNull().unique(),
-    password: text("password").notNull(),
-    createdAt: timestamp("created_at", {
-        withTimezone: true,
-    }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", {
-        withTimezone: true,
-    }).notNull().$onUpdate(() => new Date()),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 })
+
+export const salt = pgTable("salt", {
+    id: serial("id").primaryKey(),
+    userId: serial("user_id").references(() => user.id),
+    salt: text("salt").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
+});
+
+export const password = pgTable("password", {
+    id: serial("id").primaryKey(),
+    userId: serial("user_id").references(() => user.id),
+    password: text("password").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
+});

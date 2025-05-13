@@ -1,7 +1,8 @@
+import { JWSInvalid } from "jose/errors";
 import { expect } from "jsr:@std/expect";
 import { describe, it } from "jsr:@std/testing/bdd";
 import { MockDatabase } from "../src/database/MockDatabase.ts";
-import { generateMockUser } from "../src/mocks/User.ts";
+import { generateMockPassword, generateMockUser } from "../src/mocks/User.ts";
 import { AuthenticationService } from "../src/services/AuthenticationService.ts";
 
 describe("User authentication", () => {
@@ -10,15 +11,15 @@ describe("User authentication", () => {
         const authService = new AuthenticationService(db);
 
         const user = generateMockUser();
+        const password = generateMockPassword();
         
-        const userId = await authService.registerUser(user);
+        const userId = await authService.registerUser(user, password);
         const registeredUser = await authService.getUserById(userId);
         
         expect(registeredUser).toBeDefined();
         expect(registeredUser?.name).toBe(user.name);
         expect(registeredUser?.email).toBe(user.email);
         expect(registeredUser?.document).toBe(user.document);
-        expect(registeredUser?.password).toBe(user.password);
         expect(registeredUser?.createdAt).toBeDefined();
         expect(registeredUser?.updatedAt).toBeDefined();
     });
@@ -28,11 +29,12 @@ describe("User authentication", () => {
         const authService = new AuthenticationService(db);
 
         const user = generateMockUser();
+        const password = generateMockPassword();
         
-        await authService.registerUser(user);
+        await authService.registerUser(user, password);
         
         try {
-            await authService.registerUser(user);
+            await authService.registerUser(user, password);
         } catch (error: unknown) {
             if (!(error instanceof Error)) {
                 throw error;
@@ -46,10 +48,11 @@ describe("User authentication", () => {
         const authService = new AuthenticationService(db);
 
         const user = generateMockUser();
+        const password = generateMockPassword();
+
+        await authService.registerUser(user, password);
         
-        await authService.registerUser(user);
-        
-        const loggedInUser = await authService.loginUser(user.email, user.password);
+        const loggedInUser = await authService.loginUser(user.email, password);
         
         expect(loggedInUser).toBeDefined();
         expect(loggedInUser?.email).toBe(user.email);
@@ -60,8 +63,9 @@ describe("User authentication", () => {
         const authService = new AuthenticationService(db);
 
         const user = generateMockUser();
+        const password = generateMockPassword();
         
-        await authService.registerUser(user);
+        await authService.registerUser(user, password);
         
         try {
             await authService.loginUser(user.email, "wrongpassword");
@@ -78,8 +82,9 @@ describe("User authentication", () => {
         const authService = new AuthenticationService(db);
 
         const user = generateMockUser();
+        const password = generateMockPassword();
         
-        const userId = await authService.registerUser(user);
+        const userId = await authService.registerUser(user, password);
         
         const updatedUser = { ...user, name: "Updated Name" };
         await authService.updateUser(userId, updatedUser);
@@ -95,8 +100,9 @@ describe("User authentication", () => {
         const authService = new AuthenticationService(db);
 
         const user = generateMockUser();
+        const password = generateMockPassword();
         
-        const userId = await authService.registerUser(user);
+        const userId = await authService.registerUser(user, password);
         
         const deleted = await authService.deleteUser(userId);
         
@@ -112,8 +118,9 @@ describe("User authentication", () => {
         const authService = new AuthenticationService(db);
 
         const user = generateMockUser();
+        const password = generateMockPassword();
         
-        const userId = await authService.registerUser(user);
+        const userId = await authService.registerUser(user, password);
         
         const token = await authService.createJWT(userId);
         
@@ -125,8 +132,9 @@ describe("User authentication", () => {
         const authService = new AuthenticationService(db);
 
         const user = generateMockUser();
+        const password = generateMockPassword();
         
-        const userId = await authService.registerUser(user);
+        const userId = await authService.registerUser(user, password);
         
         const token = await authService.createJWT(userId);
         
@@ -134,5 +142,21 @@ describe("User authentication", () => {
         
         expect(payload).toBeDefined();
         expect(payload?.id).toBe(userId);
+    });
+
+    it("should not verify an invalid JWT token", async () => {
+        const db = new MockDatabase();
+        const authService = new AuthenticationService(db);
+
+        const invalidToken = "invalidtoken";
+        
+        try {
+            await authService.verifyJWT(invalidToken);
+        } catch (error: unknown) {
+            if (!(error instanceof JWSInvalid)) {
+                throw error;
+            }
+            expect(error.code).toBe("ERR_JWS_INVALID");
+        }
     });
 })

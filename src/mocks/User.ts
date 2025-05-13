@@ -11,8 +11,18 @@ export function generateMockUser(): IUser {
         name: faker.person.fullName(),
         email: faker.internet.email(),
         document: faker.string.numeric(11),
-        password: faker.internet.password(),
         createdAt: faker.date.past(),
         updatedAt: faker.date.recent(),
   };
+}
+
+export function generateMockPassword(): string {
+    const faker = new Faker({
+        locale: pt_BR,
+    })
+  
+    return faker.internet.password({
+        length: 8,
+        memorable: true,
+    });
 }
