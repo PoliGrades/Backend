@@ -14,6 +14,7 @@
     "drizzle-orm": "npm:drizzle-orm@^0.43.1",
     "express": "npm:express@^5.1.0",
     "@langchain/mistralai": "npm:@langchain/mistralai@^0.2.0",
+    "jose": "npm:jose@^6.0.11",
     "pg": "npm:pg@^8.16.0",
     "socket.io": "npm:socket.io@^4.8.1",
     "socket.io-client": "npm:socket.io-client@^4.8.1",

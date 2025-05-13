@@ -106,4 +106,33 @@ describe("User authentication", () => {
         
         expect(fetchedUser).toBeNull();
     });
+
+    it("should generate a JWT token for a user", async () => {
+        const db = new MockDatabase();
+        const authService = new AuthenticationService(db);
+
+        const user = generateMockUser();
+        
+        const userId = await authService.registerUser(user);
+        
+        const token = await authService.createJWT(userId);
+        
+        expect(token).toBeDefined();
+    });
+
+    it("should verify a valid JWT token", async () => {
+        const db = new MockDatabase();
+        const authService = new AuthenticationService(db);
+
+        const user = generateMockUser();
+        
+        const userId = await authService.registerUser(user);
+        
+        const token = await authService.createJWT(userId);
+        
+        const payload = await authService.verifyJWT(token);
+        
+        expect(payload).toBeDefined();
+        expect(payload?.id).toBe(userId);
+    });
 })

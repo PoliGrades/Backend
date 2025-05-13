@@ -20,6 +20,7 @@
     "npm:drizzle-kit@~0.31.1": "0.31.1_esbuild@0.25.4",
     "npm:drizzle-orm@~0.43.1": "0.43.1_pg@8.16.0_@types+pg@8.15.1",
     "npm:express@^5.1.0": "5.1.0",
+    "npm:jose@^6.0.11": "6.0.11",
     "npm:pg@^8.16.0": "8.16.0",
     "npm:socket.io-client@^4.8.1": "4.8.1",
     "npm:socket.io@*": "4.8.1",
@@ -883,6 +884,9 @@
     "is-promise@4.0.0": {
       "integrity": "sha512-hvpoI6korhJMnej285dSg6nu1+e6uxs7zG3BYAm5byqDsgJNWwxzM6z6iZiAgQR4TJ30JmBTOwqZUw3WlyH3AQ=="
     },
+    "jose@6.0.11": {
+      "integrity": "sha512-QxG7EaliDARm1O1S8BGakqncGT9s25bKL1WSf6/oa17Tkqwi8D2ZNglqCF+DsYF88/rV66Q/Q2mFAy697E1DUg=="
+    },
     "js-tiktoken@1.0.20": {
       "integrity": "sha512-Xlaqhhs8VfCd6Sh7a1cFkZHQbYTLCwVJJWiHVxBYzLPxW0XsoxBy1hitmjkdIjD3Aon5BXLHFwU5O8WUx6HH+A==",
       "dependencies": [
@@ -1328,6 +1332,7 @@
       "npm:drizzle-kit@~0.31.1",
       "npm:drizzle-orm@~0.43.1",
       "npm:express@^5.1.0",
+      "npm:jose@^6.0.11",
       "npm:pg@^8.16.0",
       "npm:socket.io-client@^4.8.1",
       "npm:socket.io@^4.8.1",
