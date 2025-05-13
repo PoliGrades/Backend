@@ -31,5 +31,10 @@
   "nodeModulesDir": "auto",
   "unstable": [
     "sloppy-imports"
-  ]
+  ],
+  "fmt": {
+    "options": {
+      "indentWidth": 2
+    }
+  }
 }
