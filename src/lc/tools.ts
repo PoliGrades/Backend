@@ -106,6 +106,14 @@ export const createOrder = tool(
 
     if (isConfirmed) {
       orders.push(newOrder);
+
+      io.emit(
+        "new_order",
+        JSON.stringify({
+          newOrder
+        }),
+      );
+
       return `Pedido ${newOrder.id} criado com sucesso!`;
     } else {
       return `Pedido ${newOrder.id} não confirmado.`;

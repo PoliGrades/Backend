@@ -5,6 +5,7 @@
   "imports": {
     "@langchain/core": "npm:@langchain/core@^0.3.53",
     "@langchain/langgraph": "npm:@langchain/langgraph@^0.2.68",
+    "@types/cors": "npm:@types/cors@^2.8.18",
     "@types/express": "npm:@types/express@^5.0.1",
     "cors": "npm:cors@^2.8.5",
     "drizzle-kit": "npm:drizzle-kit@^0.31.0",

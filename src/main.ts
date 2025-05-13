@@ -21,6 +21,8 @@ app.get("/", (_req, res) => {
   res.send("Welcome to the Dinosaur API!");
 });
 
+
+// Handle messages from chat
 export const pendingConfirmation = new Map();
 
 io.on("connection", (socket) => {
