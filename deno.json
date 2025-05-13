@@ -1,16 +1,20 @@
 {
   "tasks": {
-    "dev": "deno run --allow-net ./src/main.ts"
+    "dev": "deno run --allow-net ./src/main.ts",
+    "test": "deno test --env --allow-env --allow-read --allow-ffi --allow-sys --allow-net"
   },
   "imports": {
     "@faker-js/faker": "npm:@faker-js/faker@^9.7.0",
     "@langchain/core": "npm:@langchain/core@^0.3.53",
     "@langchain/langgraph": "npm:@langchain/langgraph@^0.2.68",
     "@types/bcrypt": "npm:@types/bcrypt@^5.0.2",
+    "@types/cookie-parser": "npm:@types/cookie-parser@^1.4.8",
     "@types/cors": "npm:@types/cors@^2.8.18",
     "@types/express": "npm:@types/express@^5.0.1",
     "@types/pg": "npm:@types/pg@^8.15.1",
+    "@types/supertest": "npm:@types/supertest@^6.0.3",
     "bcrypt": "npm:bcrypt@^6.0.0",
+    "cookie-parser": "npm:cookie-parser@^1.4.7",
     "cors": "npm:cors@^2.8.5",
     "drizzle-kit": "npm:drizzle-kit@^0.31.1",
     "drizzle-orm": "npm:drizzle-orm@^0.43.1",
@@ -20,6 +24,7 @@
     "pg": "npm:pg@^8.16.0",
     "socket.io": "npm:socket.io@^4.8.1",
     "socket.io-client": "npm:socket.io-client@^4.8.1",
+    "supertest": "npm:supertest@^7.1.1",
     "uuid": "npm:uuid@^11.1.0",
     "zod": "npm:zod@^3.24.4"
   },
