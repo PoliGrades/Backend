@@ -20,5 +20,8 @@ jobs:
         with:
           deno-version: v2.3.1
 
+      - name: Format code
+        run: deno fmt
+        
       - name: Run unit tests
         run: deno task test
