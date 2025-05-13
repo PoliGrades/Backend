@@ -1,10 +1,14 @@
 // deno-lint-ignore-file
 import { PgTableWithColumns } from "drizzle-orm/pg-core/table";
-import { InferInsertModel, InferSelectModel, TableConfig } from "drizzle-orm/table";
+import {
+  InferInsertModel,
+  InferSelectModel,
+  TableConfig,
+} from "drizzle-orm/table";
 import { IDatabase } from "../interfaces/IDatabase.ts";
 
 export class MockDatabase implements IDatabase {
-     constructor() {
+  constructor() {
     this.data = new Map<string | number, any>();
   }
 
@@ -81,7 +85,11 @@ export class MockDatabase implements IDatabase {
     return Promise.resolve(results);
   }
 
-  selectByField<T extends TableConfig>(table: PgTableWithColumns<T>, field: keyof InferSelectModel<PgTableWithColumns<T>>, value: string | number): Promise<InferSelectModel<PgTableWithColumns<T>>[]> {
+  selectByField<T extends TableConfig>(
+    table: PgTableWithColumns<T>,
+    field: keyof InferSelectModel<PgTableWithColumns<T>>,
+    value: string | number,
+  ): Promise<InferSelectModel<PgTableWithColumns<T>>[]> {
     const results: InferSelectModel<PgTableWithColumns<T>>[] = [];
     this.data.forEach((record) => {
       if (record.table === table && record[field] === value) {

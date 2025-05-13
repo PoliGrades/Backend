@@ -95,14 +95,14 @@ export const createOrder = tool(
 
     const isConfirmed = await new Promise((resolve) => {
       pendingConfirmation.set(newOrder.id, { resolve });
-      
+
       setTimeout(() => {
         if (pendingConfirmation.has(newOrder.id)) {
           pendingConfirmation.delete(newOrder.id);
           resolve(false);
         }
       }, 30000);
-    })
+    });
 
     if (isConfirmed) {
       orders.push(newOrder);
@@ -110,7 +110,7 @@ export const createOrder = tool(
       io.emit(
         "new_order",
         JSON.stringify({
-          newOrder
+          newOrder,
         }),
       );
 

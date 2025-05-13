@@ -15,7 +15,7 @@ const db = new MockDatabase();
 const authenticationService = new AuthenticationService(db);
 const JWTmiddleware = new ValidateJWT(authenticationService);
 
-app.use(cookieParser())
+app.use(cookieParser());
 app.use(express.json());
 
 app.use(cors({
@@ -37,12 +37,19 @@ app.post("/auth/register", async (req, res) => {
   const { name, email, document, password } = req.body;
   try {
     const userId = await authenticationService.registerUser(
-      { id: 123, name, email, document, createdAt: new Date(), updatedAt: new Date() },
+      {
+        id: 123,
+        name,
+        email,
+        document,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
       password,
     );
 
     const token = await authenticationService.createJWT(userId);
-    
+
     res.cookie("token", token, {
       httpOnly: true,
       secure: false,
