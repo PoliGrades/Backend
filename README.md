@@ -1,3 +1,5 @@
+[![CI/Deno Test](https://github.com/PoliEats/Backend/actions/workflows/deno_test.yml/badge.svg)](https://github.com/PoliEats/Backend/actions/workflows/deno_test.yml)
+
 # PoliEats 🍽 - Backend
 
 ## Descrição:
