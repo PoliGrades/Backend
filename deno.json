@@ -3,6 +3,7 @@
     "dev": "deno run --allow-net ./src/main.ts"
   },
   "imports": {
+    "@faker-js/faker": "npm:@faker-js/faker@^9.7.0",
     "@langchain/core": "npm:@langchain/core@^0.3.53",
     "@langchain/langgraph": "npm:@langchain/langgraph@^0.2.68",
     "@types/cors": "npm:@types/cors@^2.8.18",
