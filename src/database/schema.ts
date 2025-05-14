@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { doublePrecision, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: serial("id").primaryKey(),
@@ -24,3 +24,11 @@ export const password = pgTable("password", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });
+
+export const order = pgTable("order", {
+  id: serial("id").primaryKey(),
+  userId: serial("user_id").references(() => user.id),
+  total: doublePrecision(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
+})
