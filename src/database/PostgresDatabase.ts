@@ -74,6 +74,7 @@ export class PostgresDatabase implements IDatabase {
     const query = this.db.select().from(table).where(
       and(
         ...Object.entries(fields).map(([key, value]) =>
+          // deno-lint-ignore no-explicit-any
           eq(table[key as keyof InferSelectModel<PgTableWithColumns<T>>], value) as any
         ),
       ),

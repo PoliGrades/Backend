@@ -119,7 +119,7 @@ app.get("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
   });
 });
 
-app.get("/orders", async (req, res) => {
+app.get("/orders", async (_req, res) => {
   const result = await orderHandler.getOrders();
 
   console.log(result);
@@ -170,7 +170,7 @@ export const pendingConfirmation = new Map();
 
 export const userIds = new Map();
 
-io.use(async (socket, next) => {
+io.use((socket, next) => {
   // const token = socket.handshake.headers.cookie?.split("=")[1];
   // if (!token) {
   //   return next(new Error("Authentication error"));

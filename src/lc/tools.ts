@@ -92,7 +92,7 @@ export const createOrder = tool(
         );
 
         return `Pedido ${result.data} criado com sucesso!`;
-      } catch (err: unknown) {
+      } catch (_err: unknown) {
         return `Ocorreu um erro ao processar o seu pedido, por favor, tente novamente mais tarde`;
       }
     } else {
