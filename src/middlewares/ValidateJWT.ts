@@ -18,7 +18,11 @@ export class ValidateJWT {
     }
 
     await this.authService.verifyJWT(token)
-      .then(() => {
+      .then((res) => {
+        if (res) {
+          //@ts-ignore just to avoid the error
+          req.user = res;
+        }
         next();
       })
       .catch(() => {

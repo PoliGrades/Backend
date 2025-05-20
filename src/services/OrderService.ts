@@ -35,6 +35,24 @@ export class OrderService{
         return order;
     }
 
+    async getOrderById(userId: number) {
+        const order = await this.db.selectByField(orderTable, "userId", userId)
+        if (!order) {
+            throw new Error("Order not found")
+        }
+
+        return order;
+    }
+
+    async getOrders(userId: number) {
+        const orders = await this.db.selectAll(orderTable)
+        if (!orders) {
+            throw new Error("No orders found")
+        }
+
+        return orders;
+    }
+
     @validateData(orderSchema)
     async updateOrder(order: IOrder, id: number) {
         const existingOrder = await this.db.select(orderTable, id)
@@ -44,5 +62,25 @@ export class OrderService{
 
         const updatedOrder = await this.db.update(orderTable, id, order)
         return updatedOrder.id
+    }
+
+    async deleteOrder(id: number) {
+        const existingOrder = await this.db.select(orderTable, id)
+        if (!existingOrder) {
+            throw new Error("Order not found")
+        }
+
+        const deletedOrder = await this.db.delete(orderTable, id)
+        return deletedOrder
+    }
+
+    async updateOrderStatus(id: number, status: "pending" | "completed" | "canceled") {
+        const existingOrder = await this.db.select(orderTable, id)
+        if (!existingOrder) {
+            throw new Error("Order not found")
+        }
+
+        const updatedOrder = await this.db.update(orderTable, id, { status })
+        return updatedOrder
     }
 }

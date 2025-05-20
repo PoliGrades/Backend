@@ -50,7 +50,6 @@ export const createOrder = tool(
       observation?: string;
     }[];
   }) => {
-    // Parse the items from the input, the input is a string with the item names
     const parsedItems = items.map((itemName) => {
       const item = availableItems.find((i) =>
         i.name.toLowerCase() === itemName.name.toLowerCase()
@@ -106,6 +105,8 @@ export const createOrder = tool(
 
     if (isConfirmed) {
       orders.push(newOrder);
+
+      //TODO: Add the order to the database
 
       io.emit(
         "new_order",
