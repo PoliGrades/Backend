@@ -1,10 +1,12 @@
 import { expect } from "jsr:@std/expect/expect";
-import { describe, it } from "jsr:@std/testing/bdd";
+import { beforeAll, describe, it } from "jsr:@std/testing/bdd";
 import request from "supertest";
 import { wsServer } from "../src/main.ts";
+import { generateMockOrder } from "../src/mocks/Order.ts";
 import { generateMockPassword, generateMockUser } from "../src/mocks/User.ts";
 
-describe("POST /auth/register", () => {
+describe("Routes", () => {
+  describe("POST /auth/register", () => {
   it("should register a new user", async () => {
     const newUser = generateMockUser();
     const password = generateMockPassword();
@@ -140,3 +142,73 @@ describe("POST /auth/login", () => {
     expect(res.status).toBe(401);
   });
 });
+describe("POST /order", () => {
+  let token: string;
+
+  beforeAll(async () => {
+    const newUser = generateMockUser();
+    const password = generateMockPassword();
+
+    await request(wsServer)
+      .post("/auth/register")
+      .send({
+        name: newUser.name,
+        email: newUser.email,
+        document: newUser.document,
+        password: password,
+      }).then((res) => {
+        token = res.headers["set-cookie"][0].split("=")[1].split(";")[0];
+      })
+  });
+
+  it("should create a new order", async () => {
+    const res = await request(wsServer)
+      .post("/order")
+      .set("Cookie", `token=${token}`)
+      .send(generateMockOrder());
+
+    expect(res.status).toBe(201);
+  });
+
+  it("should update an existing order", async () => {
+    const order = generateMockOrder();
+    const createRes = await request(wsServer)
+      .post("/order")
+      .set("Cookie", `token=${token}`)
+      .send(order);
+
+    const orderId = createRes.body.data;
+    const updatedOrder = generateMockOrder();
+    const res = await request(wsServer)
+      .put(`/order/${orderId}`)
+      .set("Cookie", `token=${token}`)
+      .send(updatedOrder);
+
+    expect(res.status).toBe(200);
+  });
+
+  it("should not create a new order without a valid JWT", async () => {
+    const res = await request(wsServer)
+      .post("/order")
+      .send(generateMockOrder());
+
+    expect(res.status).toBe(401);
+  });
+
+  it("should not create a new order with invalid data", async () => {
+    const res = await request(wsServer)
+      .post("/order")
+      .set("Cookie", `token=${token}`)
+      .send({
+        items: [
+          {
+            name: "Invalid Item",
+            quantity: 2,
+          },
+        ],
+      });
+
+    expect(res.status).toBe(400);
+  });
+})
+})

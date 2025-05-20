@@ -1,4 +1,4 @@
-import { ZodSchema } from "zod";
+import { ZodError, ZodSchema } from "zod";
 
 export function validateData(schema: ZodSchema) {
   return function (
@@ -10,11 +10,13 @@ export function validateData(schema: ZodSchema) {
 
     descriptor.value = async function (...args: unknown[]) {
       try {
-        await schema.safeParseAsync(args[0]);
+        await schema.parseAsync(args[0]);
 
         return originalMethod.apply(this, [args[0], args[1]]);
       } catch (error) {
-        throw new Error(`Validation failed: ${error}`);
+        if (error instanceof ZodError) {
+          throw new ZodError(error.issues);
+        }
       }
     };
   };

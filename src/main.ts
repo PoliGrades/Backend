@@ -94,21 +94,10 @@ app.post("/auth/login", async (req, res) => {
 
 // Order section
 app.post("/order", JWTmiddleware.validateToken, async (req, res) => {
-  const { order } = req.body;
+  const order = req.body;
   const userId = req.user!.id;
   
   const result = await orderHandler.createOrder(order, userId as number);
-  
-  res.status(result.status).json({
-    message: result.message,
-    data: result.data,
-    error: result.error,
-  });
-});
-
-app.get("/order", JWTmiddleware.validateToken, async (req, res) => {
-  const userId = req.user!.id;
-  const result = await orderHandler.getOrders(userId as number);
   
   res.status(result.status).json({
     message: result.message,
@@ -154,19 +143,6 @@ app.patch("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
     userId as number,
   );
 
-  res.status(result.status).json({
-    message: result.message,
-    data: result.data,
-    error: result.error,
-  });
-});
-
-app.put("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
-  const { id } = req.params;
-  const { order } = req.body;
-
-  const userId = req.user!.id;
-  const result = await orderHandler.updateOrder(Number(id), order, userId as number);
   res.status(result.status).json({
     message: result.message,
     data: result.data,

@@ -81,6 +81,93 @@ describe("Order service", () => {
         expect(updatedOrder).toBeDefined();
     })
 
+    it("should not update a non existing order", async () => {
+        const db = new MockDatabase();
+        const orderService = new OrderService(db);
+
+        const order = generateMockOrder();
+
+        const _newOrder = await orderService.createOrder(order, user);
+
+        try {
+            await orderService.updateOrder(order as Required<IOrder>, 0);
+        } catch (error: unknown) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+
+            expect(error.message).toBe("Order not found")
+        }
+    })
+
+    it("should delete an existing order", async () => {
+        const db = new MockDatabase();
+        const orderService = new OrderService(db);
+
+        const order = generateMockOrder();
+
+        const newOrder = await orderService.createOrder(order, user);
+
+        expect(newOrder).toBeDefined();
+
+        const deletedOrder = await orderService.deleteOrder(newOrder);
+
+        expect(deletedOrder).toBeDefined();
+    })
+
+    it("should not delete a non existing order", async () => {
+        const db = new MockDatabase();
+        const orderService = new OrderService(db);
+
+        const order = generateMockOrder();
+
+        const _newOrder = await orderService.createOrder(order, user);
+
+        try {
+            await orderService.deleteOrder(0);
+        } catch (error: unknown) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+
+            expect(error.message).toBe("Order not found")
+        }
+    })
+
+    it("should get all orders", async () => {
+        const db = new MockDatabase();
+        const orderService = new OrderService(db);
+
+        const order = generateMockOrder();
+
+        const newOrder = await orderService.createOrder(order, user);
+
+        expect(newOrder).toBeDefined();
+
+        const orders = await orderService.getOrders(user);
+
+        expect(orders).toBeDefined();
+    })
+
+    it("should not get all orders for a non existing user", async () => {
+        const db = new MockDatabase();
+        const orderService = new OrderService(db);
+
+        const order = generateMockOrder();
+
+        const _newOrder = await orderService.createOrder(order, user);
+
+        try {
+            await orderService.getOrders(0);
+        } catch (error: unknown) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+
+            expect(error.message).toBe("No orders found")
+        }
+    })
+
     it("should not create an order for an unauthenticated user", async () => {
         const db = new MockDatabase();
         const orderService = new OrderService(db);

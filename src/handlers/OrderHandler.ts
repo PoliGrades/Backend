@@ -1,3 +1,4 @@
+import { ZodError } from "zod";
 import { IDatabase } from "../interfaces/IDatabase.ts";
 import { IHandlerReturn } from "../interfaces/IHandlerReturn.ts";
 import { IOrder } from "../interfaces/IOrder.ts";
@@ -12,7 +13,12 @@ export class OrderHandler {
 
     async createOrder(order: IOrder, userId: number): Promise<IHandlerReturn> {
         try {
+            order.userId = userId;
+            order.createdAt = new Date();
+            order.updatedAt = new Date();
+
             const newOrder = await this.orderService.createOrder(order, userId);
+
             return {
                 status: 201,
                 message: "Order created successfully",
@@ -21,6 +27,14 @@ export class OrderHandler {
         } catch (error: unknown) {
             if (!(error instanceof Error)) {
                 throw error;
+            }
+
+            if (error instanceof ZodError) {
+                return {
+                    status: 400,
+                    message: "Invalid order data",
+                    error: error.errors.map((e) => e.message).join(", "),
+                };
             }
 
             return {
@@ -66,7 +80,7 @@ export class OrderHandler {
                     message: "You do not have permission to access this order",
                 };
             }
-            
+
             return {
                 status: 200,
                 message: "Order retrieved successfully",

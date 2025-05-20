@@ -25,7 +25,7 @@ export interface IDatabase {
   update<T extends TableConfig>(
     table: PgTableWithColumns<T>,
     id: string | number,
-    data: InferInsertModel<PgTableWithColumns<T>>,
+    data: PgTableWithColumns<T>["$inferInsert"],
   ): Promise<{
     id: typeof table["id"]["_"]["data"];
   }>;

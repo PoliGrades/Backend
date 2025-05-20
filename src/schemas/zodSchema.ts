@@ -26,6 +26,11 @@ const orderItemSchema = z.object({
 
 export const orderSchema = z.object({
   id: z.number().describe("ID do pedido").optional(),
+  status: z.enum([
+    "pending",
+    "completed",
+    "canceled",
+  ]).describe("Status do pedido"),
   userId: z.number().describe("ID do usuário").optional(),
   items: z.array(orderItemSchema),
   total: z.number(),
