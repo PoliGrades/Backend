@@ -39,5 +39,10 @@
     "options": {
       "indentWidth": 2
     }
+  },
+  "compilerOptions": {
+    "types": [
+      "./src/index.d.ts"
+    ]
   }
 }
