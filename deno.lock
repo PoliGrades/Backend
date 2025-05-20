@@ -23,6 +23,7 @@
     "npm:cookie-parser@^1.4.7": "1.4.7",
     "npm:cors@*": "2.8.5",
     "npm:cors@^2.8.5": "2.8.5",
+    "npm:drizzle-kit@*": "0.31.1_esbuild@0.25.4",
     "npm:drizzle-kit@~0.31.1": "0.31.1_esbuild@0.25.4",
     "npm:drizzle-orm@~0.43.1": "0.43.1_pg@8.16.0_@types+pg@8.15.1",
     "npm:express@^5.1.0": "5.1.0",

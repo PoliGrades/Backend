@@ -80,6 +80,9 @@ export class MockDatabase implements IDatabase {
         results.push(value);
       }
     });
+
+    console.log("Results", results);
+    
     return Promise.resolve(results);
   }
 
@@ -93,6 +96,10 @@ export class MockDatabase implements IDatabase {
       if (record.table === table && record[field] === value) {
         results.push(record);
       }
+    });
+
+    this.data.forEach((record) => {
+      delete record.table;
     });
 
     return Promise.resolve(results);

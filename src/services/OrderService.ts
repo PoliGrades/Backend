@@ -1,4 +1,4 @@
-import { order as orderTable } from "../database/schema.ts";
+import { orderItem as orderItemTable, order as orderTable } from "../database/schema.ts";
 import { IDatabase } from "../interfaces/IDatabase.ts";
 import { IOrder } from "../interfaces/IOrder.ts";
 import { orderSchema } from "../schemas/zodSchema.ts";
@@ -23,7 +23,49 @@ export class OrderService{
             throw new Error("There was an error creating your order");
         }
 
+        const orderId = newOrder.id
+        //@ts-ignore yes
+        for (const item of order.items) {
+            await this.createOrderItem(orderId, item)
+        }
+
         return newOrder.id
+    }
+
+    async createOrderItem(orderId: number, item: Partial<IOrder["items"][0]>) {
+        const order = await this.db.select(orderTable, orderId)
+        if (!order) {
+            throw new Error("Order not found")
+        }
+
+        const newItem = await this.db.insert(orderItemTable, {
+            orderId: orderId,
+            productId: item.id,
+            quantity: item.quantity,
+            observation: item.observation,
+            price: item.price,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        })
+
+        if (!newItem) {
+            throw new Error("There was an error creating your order item");
+        }
+        return newItem.id
+    }
+
+    async getOrderItems(orderId: number) {
+        const order = await this.db.select(orderTable, orderId)
+        if (!order) {
+            throw new Error("Order not found")
+        }
+
+        const items = await this.db.selectByField(orderItemTable, "orderId", orderId)
+        if (!items) {
+            throw new Error("No items found for this order")
+        }
+
+        return items;
     }
 
     async getOrder(id: number) {
@@ -31,6 +73,10 @@ export class OrderService{
         if (!order) {
             throw new Error("Order not found")
         }
+
+        const items = await this.getOrderItems(id)
+        //@ts-ignore yes
+        order.items = items
 
         return order;
     }
@@ -44,7 +90,7 @@ export class OrderService{
         return order;
     }
 
-    async getOrders(userId: number) {
+    async getOrders() {
         const orders = await this.db.selectAll(orderTable)
         if (!orders) {
             throw new Error("No orders found")
