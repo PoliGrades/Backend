@@ -1,10 +1,6 @@
-// deno-lint-ignore-file
-import { PgTableWithColumns } from "drizzle-orm/pg-core/table";
-import {
-  InferInsertModel,
-  InferSelectModel,
-  TableConfig,
-} from "drizzle-orm/table";
+// deno-lint-ignore-file no-explicit-any
+import { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { PgTableWithColumns, TableConfig } from "drizzle-orm/pg-core";
 import { IDatabase } from "../interfaces/IDatabase.ts";
 
 export class MockDatabase implements IDatabase {
@@ -29,11 +25,13 @@ export class MockDatabase implements IDatabase {
     id: typeof _table["id"]["_"]["data"];
   }> {
     let id;
-    if (typeof _table.id == "number") {
+
+    if (_table.id.columnType == "PgSerial") {
       id = this.generateNumberId();
+    } else {
+      id = this.generateId();
     }
 
-    id = this.generateId();
     this.data.set(id, { ...data, id, table: _table });
     return Promise.resolve({ id });
   }
@@ -41,7 +39,7 @@ export class MockDatabase implements IDatabase {
   update<T extends TableConfig>(
     _table: PgTableWithColumns<T>,
     id: string | number,
-    data: InferInsertModel<PgTableWithColumns<T>>,
+    data: PgTableWithColumns<T>["$inferInsert"],
   ): Promise<{
     id: typeof _table["id"]["_"]["data"];
   }> {
@@ -82,6 +80,9 @@ export class MockDatabase implements IDatabase {
         results.push(value);
       }
     });
+
+    console.log("Results", results);
+    
     return Promise.resolve(results);
   }
 
@@ -96,6 +97,11 @@ export class MockDatabase implements IDatabase {
         results.push(record);
       }
     });
+
+    this.data.forEach((record) => {
+      delete record.table;
+    });
+
     return Promise.resolve(results);
   }
 }

@@ -1,14 +1,14 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { ChatMistralAI } from "@langchain/mistralai";
 import { DynamicStructuredTool } from "npm:@langchain/core/tools";
-import { cancelOrder, createOrder, getOrder } from "./tools.ts";
+import { createOrder, getOrder, getOrders } from "./tools.ts";
 
 const llm = new ChatMistralAI({
   model: "mistral-small-latest",
   temperature: 0,
 });
 
-const tools: DynamicStructuredTool[] = [getOrder, createOrder, cancelOrder];
+const tools: DynamicStructuredTool[] = [getOrder, createOrder, getOrders];
 
 const llmWithTools = llm.bindTools(tools);
 
@@ -23,9 +23,9 @@ const toolsByName = tools.reduce((acc, tool) => {
   return acc;
 }, {} as Record<string, typeof tools[number]>);
 
-export async function addMessage(message: string) {
+export async function addMessage({message, user}: {message: string; user: {id: number; name: string}}) {
   // Send the message to the LLM
-  messages.push(new HumanMessage(message));
+  messages.push(new HumanMessage(`{message: ${message}, user: ${user.name}, id: ${user.id}}`));
 
   const firstResponse = await llmWithTools.invoke(messages);
 

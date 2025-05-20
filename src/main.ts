@@ -4,6 +4,7 @@ import { createServer } from "node:http";
 import cors from "npm:cors";
 import { Server } from "npm:socket.io";
 import { MockDatabase } from "./database/MockDatabase.ts";
+import { OrderHandler } from "./handlers/OrderHandler.ts";
 import { addMessage } from "./lc/model.ts";
 import { ValidateJWT } from "./middlewares/ValidateJWT.ts";
 import { AuthenticationService } from "./services/AuthenticationService.ts";
@@ -14,6 +15,9 @@ const app = express();
 const db = new MockDatabase();
 const authenticationService = new AuthenticationService(db);
 const JWTmiddleware = new ValidateJWT(authenticationService);
+
+// Instantiate the handlers
+export const orderHandler = new OrderHandler(db);
 
 app.use(cookieParser());
 app.use(express.json());
@@ -27,10 +31,6 @@ export const io = new Server(wsServer, {
   cors: {
     origin: "*",
   },
-});
-
-app.get("/", (_req, res) => {
-  res.send("Welcome to the Dinosaur API!");
 });
 
 app.post("/auth/register", async (req, res) => {
@@ -92,6 +92,75 @@ app.post("/auth/login", async (req, res) => {
   }
 });
 
+// Order section
+app.post("/order", JWTmiddleware.validateToken, async (req, res) => {
+  const order = req.body;
+  const userId = req.user!.id;
+  
+  const result = await orderHandler.createOrder(order, userId as number);
+  
+  res.status(result.status).json({
+    message: result.message,
+    data: result.data,
+    error: result.error,
+  });
+});
+
+app.get("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user!.id;
+
+  const result = await orderHandler.getOrderById(Number(id), userId as number);
+  
+  res.status(result.status).json({
+    message: result.message,
+    data: result.data,
+    error: result.error,
+  });
+});
+
+app.get("/orders", async (req, res) => {
+  const result = await orderHandler.getOrders();
+
+  console.log(result);
+  
+  res.status(result.status).json({
+    message: result.message,
+    data: result.data,
+    error: result.error,
+  });
+});
+
+app.delete("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
+  const { id } = req.params;
+
+  const result = await orderHandler.deleteOrder(Number(id));
+
+  res.status(result.status).json({
+    message: result.message,
+    data: result.data,
+    error: result.error,
+  });
+});
+
+app.patch("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  const userId = req.user!.id;
+
+  const result = await orderHandler.updateOrderStatus(
+    Number(id),
+    status,
+    userId as number,
+  );
+
+  res.status(result.status).json({
+    message: result.message,
+    data: result.data,
+    error: result.error,
+  });
+});
+
 app.get("/hidden", JWTmiddleware.validateToken, (_req, res) => {
   res.status(200).json({ message: "This is a hidden route" });
 });
@@ -99,9 +168,40 @@ app.get("/hidden", JWTmiddleware.validateToken, (_req, res) => {
 // Handle messages from chat
 export const pendingConfirmation = new Map();
 
+export const userIds = new Map();
+
+io.use(async (socket, next) => {
+  // const token = socket.handshake.headers.cookie?.split("=")[1];
+  // if (!token) {
+  //   return next(new Error("Authentication error"));
+  // }
+
+  // await authenticationService.verifyJWT(token)
+  //   .then((user) => {
+  //     if (!user) {
+  //       return next(new Error("Authentication error"));
+  //     }
+  //     //@ts-ignore just to avoid the error
+  //     socket.user = user;
+  //     next();
+  //   })
+  //   .catch(() => {
+  //     return next(new Error("Authentication error"));
+  //   });
+
+  socket.user = {
+    id: 2,
+    name: "Lucas",
+  }
+
+  next();
+});
+
 io.on("connection", (socket) => {
+  console.log(socket.user);
+
   socket.on("message", async (e) => {
-    await addMessage(e).then((final) => {
+    await addMessage({message: e, user: socket.user}).then((final) => {
       socket.emit("message", final);
     });
   });
@@ -130,4 +230,3 @@ io.on("connection", (socket) => {
 });
 
 wsServer.listen(8000);
-console.log(`Server is running on http://localhost:8000`);

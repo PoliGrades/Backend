@@ -15,3 +15,25 @@ export const userSchema = z.object({
   createdAt: z.date().describe("Data de criação do usuário"),
   updatedAt: z.date().describe("Data de atualização do usuário"),
 });
+
+const orderItemSchema = z.object({
+  id: z.number().describe("ID do item"),
+  name: z.string().describe("Nome do item"),
+  price: z.number().describe("Preço do produto"),
+  quantity: z.number().describe("Quantidade"),
+  observation: z.string().describe("Observações").optional(),
+})
+
+export const orderSchema = z.object({
+  id: z.number().describe("ID do pedido").optional(),
+  status: z.enum([
+    "pending",
+    "completed",
+    "canceled",
+  ]).describe("Status do pedido"),
+  userId: z.number().describe("ID do usuário").optional(),
+  items: z.array(orderItemSchema),
+  total: z.number(),
+  createdAt: z.date().describe("Data de criação do pedido"),
+  updatedAt: z.date().describe("Data de atualização do pedido"),
+})
