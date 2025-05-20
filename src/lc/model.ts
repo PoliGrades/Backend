@@ -23,9 +23,15 @@ const toolsByName = tools.reduce((acc, tool) => {
   return acc;
 }, {} as Record<string, typeof tools[number]>);
 
-export async function addMessage({message, user}: {message: string; user: {id: number; name: string}}) {
+export async function addMessage(
+  { message, user }: { message: string; user: { id: number; name: string } },
+) {
   // Send the message to the LLM
-  messages.push(new HumanMessage(`{message: ${message}, user: ${user.name}, id: ${user.id}}`));
+  messages.push(
+    new HumanMessage(
+      `{message: ${message}, user: ${user.name}, id: ${user.id}}`,
+    ),
+  );
 
   const firstResponse = await llmWithTools.invoke(messages);
 
@@ -42,13 +48,11 @@ export async function addMessage({message, user}: {message: string; user: {id: n
     const finalResponse = await llmWithTools.invoke(messages);
     messages.push(finalResponse);
 
-    console.log(messages);
     return JSON.stringify({
       type: "response",
       message: finalResponse.content,
     });
   } else {
-    console.log(messages);
     messages.push(firstResponse);
     return JSON.stringify({
       type: "response",

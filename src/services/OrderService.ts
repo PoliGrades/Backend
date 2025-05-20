@@ -1,133 +1,146 @@
-import { orderItem as orderItemTable, order as orderTable } from "../database/schema.ts";
+import {
+  order as orderTable,
+  orderItem as orderItemTable,
+} from "../database/schema.ts";
 import { IDatabase } from "../interfaces/IDatabase.ts";
 import { IOrder } from "../interfaces/IOrder.ts";
 import { orderSchema } from "../schemas/zodSchema.ts";
 import { validateData } from "./decorators.ts";
 
-export class OrderService{
-    private db: IDatabase;
-    
-    constructor(db: IDatabase) {
-        this.db = db;
+export class OrderService {
+  private db: IDatabase;
+
+  constructor(db: IDatabase) {
+    this.db = db;
+  }
+
+  @validateData(orderSchema)
+  async createOrder(order: Partial<IOrder>, id: number) {
+    order = {
+      ...order,
+      userId: id,
+    };
+
+    const newOrder = await this.db.insert(orderTable, order as IOrder);
+    if (!newOrder) {
+      throw new Error("There was an error creating your order");
     }
 
-    @validateData(orderSchema)
-    async createOrder(order: Partial<IOrder>, id: number) {
-        order = {
-            ...order,
-            userId: id
-        }
+    const orderId = newOrder.id;
 
-        const newOrder = await this.db.insert(orderTable, order as IOrder)
-        if (!newOrder) {
-            throw new Error("There was an error creating your order");
-        }
-
-        const orderId = newOrder.id
-
-        //@ts-ignore yes
-        for (const item of order.items) {
-            await this.createOrderItem(orderId, item)
-        }
-
-        return newOrder.id
+    //@ts-ignore yes
+    for (const item of order.items) {
+      await this.createOrderItem(orderId, item);
     }
 
-    async createOrderItem(orderId: number, item: Partial<IOrder["items"][0]>) {
-        const order = await this.db.select(orderTable, orderId)
-        if (!order) {
-            throw new Error("Order not found")
-        }
+    return newOrder.id;
+  }
 
-        const newItem = await this.db.insert(orderItemTable, {
-            orderId: orderId,
-            productId: item.id,
-            quantity: item.quantity,
-            observation: item.observation,
-            price: item.price,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        })
-
-        if (!newItem) {
-            throw new Error("There was an error creating your order item");
-        }
-        return newItem.id
+  async createOrderItem(orderId: number, item: Partial<IOrder["items"][0]>) {
+    const order = await this.db.select(orderTable, orderId);
+    if (!order) {
+      throw new Error("Order not found");
     }
 
-    async getOrderItems(orderId: number) {
-        const order = await this.db.select(orderTable, orderId)
-        if (!order) {
-            throw new Error("Order not found")
-        }
+    const newItem = await this.db.insert(orderItemTable, {
+      orderId: orderId,
+      productId: item.id,
+      quantity: item.quantity,
+      observation: item.observation,
+      price: item.price,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
-        const items = await this.db.selectByField(orderItemTable, "orderId", orderId)
-        if (!items) {
-            throw new Error("No items found for this order")
-        }
+    if (!newItem) {
+      throw new Error("There was an error creating your order item");
+    }
+    return newItem.id;
+  }
 
-        return items;
+  async getOrderItems(orderId: number) {
+    const order = await this.db.select(orderTable, orderId);
+    if (!order) {
+      throw new Error("Order not found");
     }
 
-    async getOrder(id: number) {
-        const order = await this.db.select(orderTable, id)
-        if (!order) {
-            throw new Error("Order not found")
-        }
-
-        const items = await this.getOrderItems(id)
-        //@ts-ignore yes
-        order.items = items
-
-        return order;
+    const items = await this.db.selectByField(
+      orderItemTable,
+      "orderId",
+      orderId,
+    );
+    if (!items) {
+      throw new Error("No items found for this order");
     }
 
-    async getOrderById(userId: number) {
-        const order = await this.db.selectByField(orderTable, "userId", userId)
-        if (!order) {
-            throw new Error("Order not found")
-        }
+    return items;
+  }
 
-        return order;
+  async getOrder(id: number) {
+    const order = await this.db.select(orderTable, id);
+    if (!order) {
+      throw new Error("Order not found");
     }
 
-    async getOrders() {
-        const orders = await this.db.selectAll(orderTable)
-        if (!orders) {
-            throw new Error("No orders found")
-        }
+    const items = await this.getOrderItems(id);
+    //@ts-ignore yes
+    order.items = items;
 
-        return orders;
+    return order;
+  }
+
+  async getOrderById(userId: number) {
+    const order = await this.db.selectByField(orderTable, "userId", userId);
+    if (!order) {
+      throw new Error("Order not found");
     }
 
-    @validateData(orderSchema)
-    async updateOrder(order: IOrder, id: number) {
-        const existingOrder = await this.db.select(orderTable, id)
-        if (!existingOrder) {
-            throw new Error("Order not found")
-        }
+    return order;
+  }
 
-        const updatedOrder = await this.db.update(orderTable, id, order)
-        return updatedOrder.id
+  async getOrders() {
+    const orders = await this.db.selectAll(orderTable);
+    if (!orders) {
+      throw new Error("No orders found");
     }
 
-    async deleteOrder(id: number) {
-        const existingOrder = await this.db.select(orderTable, id)
-        if (!existingOrder) {
-            throw new Error("Order not found")
-        }
+    return orders;
+  }
 
-        const deletedOrder = await this.db.delete(orderTable, id)
-        return deletedOrder
+  @validateData(orderSchema)
+  async updateOrder(order: IOrder, id: number) {
+    const existingOrder = await this.db.select(orderTable, id);
+    if (!existingOrder) {
+      throw new Error("Order not found");
     }
 
-    async updateOrderStatus(id: number, status: "pending" | "completed" | "canceled") {
-        const existingOrder = await this.db.select(orderTable, id)
-        if (!existingOrder) {
-            throw new Error("Order not found")
-        }
+    // @ts-ignore yes
+    delete existingOrder.table;
 
-        const updatedOrder = await this.db.update(orderTable, id, { status })
-        return updatedOrder
+    const updatedOrder = await this.db.update(orderTable, id, order);
+    return updatedOrder.id;
+  }
+
+  async deleteOrder(id: number) {
+    const existingOrder = await this.db.select(orderTable, id);
+    if (!existingOrder) {
+      throw new Error("Order not found");
     }
+
+    const deletedOrder = await this.db.delete(orderTable, id);
+    return deletedOrder;
+  }
+
+  async updateOrderStatus(
+    id: number,
+    status: "pending" | "completed" | "canceled",
+  ) {
+    const existingOrder = await this.db.select(orderTable, id);
+    if (!existingOrder) {
+      throw new Error("Order not found");
+    }
+
+    const updatedOrder = await this.db.update(orderTable, id, { status });
+    return updatedOrder;
+  }
 }

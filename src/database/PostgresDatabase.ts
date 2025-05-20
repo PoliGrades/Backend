@@ -1,5 +1,12 @@
+// deno-lint-ignore-file
 //@ts-nocheck just to avoid typescript errors
-import { and, eq, InferInsertModel, InferSelectModel, TableConfig } from "drizzle-orm";
+import {
+  and,
+  eq,
+  InferInsertModel,
+  InferSelectModel,
+  TableConfig,
+} from "drizzle-orm";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { PgTableWithColumns } from "drizzle-orm/pg-core/table";
 import { IDatabase } from "../interfaces/IDatabase.ts";
@@ -9,7 +16,9 @@ export class PostgresDatabase implements IDatabase {
 
   constructor() {
     this.db = drizzle(
-      Deno.env.get("ENVIRONMENT") === "production" ? Deno.env.get("DATABASE_URL") : Deno.env.get("TEST_DATABASE_URL"),
+      Deno.env.get("ENVIRONMENT") === "production"
+        ? Deno.env.get("DATABASE_URL")
+        : Deno.env.get("TEST_DATABASE_URL"),
       {
         logger: true,
       },
@@ -20,7 +29,9 @@ export class PostgresDatabase implements IDatabase {
     table: PgTableWithColumns<T>,
     data: InferInsertModel<PgTableWithColumns<T>>,
   ): Promise<{ id: (typeof table)["id"]["_"]["data"] }> {
-    const res = await this.db.insert(table).values(data).returning({ id: table.id });
+    const res = await this.db.insert(table).values(data).returning({
+      id: table.id,
+    });
     return res[0];
   }
 
@@ -29,13 +40,16 @@ export class PostgresDatabase implements IDatabase {
     id: string | number,
     data: PgTableWithColumns<T>["$inferInsert"],
   ): Promise<{ id: (typeof table)["id"]["_"]["data"] }> {
-    console.log(id, data);
-    const res = await this.db.update(table).set(data).where(eq(table.id, id)).returning();
-    console.log(res);
+    const res = await this.db.update(table).set(data).where(eq(table.id, id))
+      .returning();
+
     return res[0];
   }
 
-  async delete<T extends TableConfig>(table: PgTableWithColumns<T>, id: string | number): Promise<boolean> {
+  async delete<T extends TableConfig>(
+    table: PgTableWithColumns<T>,
+    id: string | number,
+  ): Promise<boolean> {
     const res = await this.db.delete(table).where(eq(table.id, id));
     if (res.rowCount !== null && res.rowCount > 0) {
       return true;
@@ -55,7 +69,9 @@ export class PostgresDatabase implements IDatabase {
     return null;
   }
 
-  selectAll<T extends TableConfig>(table: PgTableWithColumns<T>): Promise<InferSelectModel<PgTableWithColumns<T>>[]> {
+  selectAll<T extends TableConfig>(
+    table: PgTableWithColumns<T>,
+  ): Promise<InferSelectModel<PgTableWithColumns<T>>[]> {
     return this.db.select().from(table);
   }
 
@@ -69,13 +85,17 @@ export class PostgresDatabase implements IDatabase {
 
   selectByFields<T extends TableConfig>(
     table: PgTableWithColumns<T>,
-    fields: Partial<Record<keyof InferSelectModel<PgTableWithColumns<T>>, string | number>>,
+    fields: Partial<
+      Record<keyof InferSelectModel<PgTableWithColumns<T>>, string | number>
+    >,
   ): Promise<InferSelectModel<PgTableWithColumns<T>>[] | null> {
     const query = this.db.select().from(table).where(
       and(
         ...Object.entries(fields).map(([key, value]) =>
-          // deno-lint-ignore no-explicit-any
-          eq(table[key as keyof InferSelectModel<PgTableWithColumns<T>>], value) as any
+          eq(
+            table[key as keyof InferSelectModel<PgTableWithColumns<T>>],
+            value,
+          ) as any
         ),
       ),
     );

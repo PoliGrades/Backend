@@ -96,9 +96,9 @@ app.post("/auth/login", async (req, res) => {
 app.post("/order", JWTmiddleware.validateToken, async (req, res) => {
   const order = req.body;
   const userId = req.user!.id;
-  
+
   const result = await orderHandler.createOrder(order, userId as number);
-  
+
   res.status(result.status).json({
     message: result.message,
     data: result.data,
@@ -111,7 +111,7 @@ app.get("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
   const userId = req.user!.id;
 
   const result = await orderHandler.getOrderById(Number(id), userId as number);
-  
+
   res.status(result.status).json({
     message: result.message,
     data: result.data,
@@ -122,8 +122,6 @@ app.get("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
 app.get("/orders", async (_req, res) => {
   const result = await orderHandler.getOrders();
 
-  console.log(result);
-  
   res.status(result.status).json({
     message: result.message,
     data: result.data,
@@ -192,16 +190,14 @@ io.use((socket, next) => {
   socket.user = {
     id: 2,
     name: "Lucas",
-  }
+  };
 
   next();
 });
 
 io.on("connection", (socket) => {
-  console.log(socket.user);
-
   socket.on("message", async (e) => {
-    await addMessage({message: e, user: socket.user}).then((final) => {
+    await addMessage({ message: e, user: socket.user }).then((final) => {
       socket.emit("message", final);
     });
   });

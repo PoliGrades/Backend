@@ -35,6 +35,7 @@ export class AuthenticationService {
     const newUser = await this.db.insert(userTable, user);
 
     const salt = await bcrypt.genSalt(10);
+
     const hashedPassword = await bcrypt.hash(password, salt);
 
     await this.db.insert(passwordTable, {
@@ -45,7 +46,8 @@ export class AuthenticationService {
     await this.db.insert(saltTable, {
       userId: newUser.id,
       salt: salt,
-    });
+    })
+    
     return newUser.id;
   }
 

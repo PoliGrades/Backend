@@ -43,6 +43,7 @@
   "compilerOptions": {
     "types": [
       "./src/index.d.ts"
-    ]
+    ],
+    "experimentalDecorators": true
   }
 }

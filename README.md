@@ -4,12 +4,13 @@
 
 ## Descrição:
 
-O PoliEats é um chatbot desenvolvido para auxiliar os alunos, professores e demais
-visitantes do colégio **Poliedro** a fazerem pedidos de comida e bebida a partir
-de uma interface de chat totalmente automatizada. O bot é capaz de responder
-perguntas frequentes, fornecer informações sobre o cardápio e realizar pedidos
-de forma rápida e eficiente. O objetivo principal do PoliEats é facilitar a
-experiência de compra dos usuários, tornando o processo mais ágil e prático.
+O PoliEats é um chatbot desenvolvido para auxiliar os alunos, professores e
+demais visitantes do colégio **Poliedro** a fazerem pedidos de comida e bebida a
+partir de uma interface de chat totalmente automatizada. O bot é capaz de
+responder perguntas frequentes, fornecer informações sobre o cardápio e realizar
+pedidos de forma rápida e eficiente. O objetivo principal do PoliEats é
+facilitar a experiência de compra dos usuários, tornando o processo mais ágil e
+prático.
 
 ## Funcionalidades:
 

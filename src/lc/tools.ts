@@ -73,9 +73,7 @@ export const createOrder = tool(
 
     if (isConfirmed) {
       try {
-        const result = await orderHandler.createOrder(newOrder, userId)
-
-        console.log(result);
+        const result = await orderHandler.createOrder(newOrder, userId);
 
         if (result.status !== 201) {
           return `Ocorreu um erro ao processar o seu pedido, por favor, tente novamente mais tarde`;
@@ -87,7 +85,7 @@ export const createOrder = tool(
             newOrder: {
               ...newOrder,
               id: result.data,
-            }
+            },
           }),
         );
 
@@ -114,13 +112,13 @@ export const createOrder = tool(
       ).describe(
         "Uma lista contendo as informações de cada item, como: nome do item, quantidade desse item e alguma possível observação",
       ),
-      userId: z.number().describe("O id do usuário que fez a requisição")
+      userId: z.number().describe("O id do usuário que fez a requisição"),
     }),
   },
 );
 
 export const getOrder = tool(
-  ({ orderId, userId }: { orderId: number, userId: number }) => {
+  ({ orderId, userId }: { orderId: number; userId: number }) => {
     const order = orderHandler.getOrderById(orderId, userId);
     if (!order) {
       return `Pedido não encontrado.`;
@@ -152,4 +150,4 @@ export const getOrders = tool(
       userId: z.number().describe("O id do usuário que fez a requisição"),
     }),
   },
-)
+);

@@ -22,7 +22,7 @@ const orderItemSchema = z.object({
   price: z.number().describe("Preço do produto"),
   quantity: z.number().describe("Quantidade"),
   observation: z.string().describe("Observações").optional(),
-})
+});
 
 export const orderSchema = z.object({
   id: z.number().describe("ID do pedido").optional(),
@@ -36,4 +36,4 @@ export const orderSchema = z.object({
   total: z.number(),
   createdAt: z.date().describe("Data de criação do pedido"),
   updatedAt: z.date().describe("Data de atualização do pedido"),
-})
+});
