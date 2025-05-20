@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run --allow-net ./src/main.ts",
+    "dev": "deno run --allow-net --env --allow-env --allow-sys ./src/main.ts",
     "test": "deno test --env --allow-env --allow-read --allow-ffi --allow-sys --allow-net"
   },
   "imports": {

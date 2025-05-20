@@ -18,7 +18,7 @@ export class OrderService{
             userId: id
         }
 
-        const newOrder = await this.db.insert(orderTable, order)
+        const newOrder = await this.db.insert(orderTable, order as IOrder)
         if (!newOrder) {
             throw new Error("There was an error creating your order");
         }

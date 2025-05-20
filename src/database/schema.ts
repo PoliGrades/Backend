@@ -1,4 +1,10 @@
-import { doublePrecision, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { doublePrecision, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+
+const orderStatusEnum = pgEnum("order_status", [
+  "pending",
+  "completed",
+  "canceled",
+]);
 
 export const user = pgTable("user", {
   id: serial("id").primaryKey(),
@@ -28,6 +34,7 @@ export const password = pgTable("password", {
 export const order = pgTable("order", {
   id: serial("id").primaryKey(),
   userId: serial("user_id").references(() => user.id),
+  status: orderStatusEnum("status").notNull(),
   total: doublePrecision(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),

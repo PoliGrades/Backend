@@ -1,6 +1,7 @@
 export type IOrder = {
     id?: number
     userId: number,
+    status: 'pending' | 'completed' | 'canceled'
     items: IOrderItem[]
     total: number
     createdAt: Date
