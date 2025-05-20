@@ -3,7 +3,7 @@ import express from "express";
 import { createServer } from "node:http";
 import cors from "npm:cors";
 import { Server } from "npm:socket.io";
-import { MockDatabase } from "./database/MockDatabase.ts";
+import { PostgresDatabase } from "./database/PostgresDatabase.ts";
 import { OrderHandler } from "./handlers/OrderHandler.ts";
 import { addMessage } from "./lc/model.ts";
 import { ValidateJWT } from "./middlewares/ValidateJWT.ts";
@@ -12,7 +12,7 @@ import { AuthenticationService } from "./services/AuthenticationService.ts";
 const app = express();
 
 // Instantiate the services
-const db = new MockDatabase();
+const db = new PostgresDatabase();
 const authenticationService = new AuthenticationService(db);
 const JWTmiddleware = new ValidateJWT(authenticationService);
 

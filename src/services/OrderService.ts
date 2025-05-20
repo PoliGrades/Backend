@@ -24,6 +24,7 @@ export class OrderService{
         }
 
         const orderId = newOrder.id
+
         //@ts-ignore yes
         for (const item of order.items) {
             await this.createOrderItem(orderId, item)
