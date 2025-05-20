@@ -45,9 +45,14 @@ export class OrderHandler {
         }
     }
 
-    async getOrders(userId: number): Promise<IHandlerReturn> {
+    async getOrders(): Promise<IHandlerReturn> {
         try {
-            const orders = await this.orderService.getOrders(userId);
+            const orders = await this.orderService.getOrders();
+            for(const order of orders) {
+                //@ts-ignore yes  
+                delete order.table;
+            }
+            
             return {
                 status: 200,
                 message: "Orders retrieved successfully",
@@ -99,9 +104,37 @@ export class OrderHandler {
         }
     }
 
-    async deleteOrder(userId: number): Promise<IHandlerReturn> {
+    async getOrdersByUserId(userId: number): Promise<IHandlerReturn> {
         try {
-            const deletedOrder = await this.orderService.deleteOrder(userId);
+            const orders = await this.orderService.getOrderById(userId);
+            if (!orders) {
+                return {
+                    status: 404,
+                    message: "No orders found for this user",
+                };
+            }
+
+            return {
+                status: 200,
+                message: "Orders retrieved successfully",
+                data: orders,
+            };
+        } catch (error: unknown) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+
+            return {
+                status: 500,
+                message: "Error retrieving orders",
+                error: error.message,
+            };
+        }
+    }
+
+    async deleteOrder(id: number): Promise<IHandlerReturn> {
+        try {
+            const deletedOrder = await this.orderService.deleteOrder(id);
             if (!deletedOrder) {
                 return {
                     status: 404,

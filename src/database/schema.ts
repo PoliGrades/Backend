@@ -1,6 +1,6 @@
 import { doublePrecision, pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 
-const orderStatusEnum = pgEnum("order_status", [
+export const orderStatusEnum = pgEnum("order_status", [
   "pending",
   "completed",
   "canceled",
@@ -39,3 +39,23 @@ export const order = pgTable("order", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 })
+
+export const product = pgTable("product", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  price: doublePrecision().notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
+});
+
+export const orderItem = pgTable("order_item", {
+  id: serial("id").primaryKey(),
+  orderId: serial("order_id").references(() => order.id),
+  productId: serial("product_id").references(() => product.id),
+  quantity: doublePrecision(),
+  price: doublePrecision(),
+  observation: text("observation"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
+});

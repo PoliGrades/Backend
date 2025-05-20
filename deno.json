@@ -1,7 +1,10 @@
 {
   "tasks": {
-    "dev": "deno run --allow-net --env --allow-env --allow-sys ./src/main.ts",
-    "test": "deno test --env --allow-env --allow-read --allow-ffi --allow-sys --allow-net"
+    "dev": "deno run --allow-net --env --allow-env --allow-sys --allow-read --allow-ffi ./src/main.ts",
+    "test": "deno test --env --allow-env --allow-read --allow-ffi --allow-sys --allow-net",
+    "db:migrate": "deno --env -A --node-modules-dir npm:drizzle-kit migrate",
+    "db:generate": "deno --env -A --node-modules-dir npm:drizzle-kit generate",
+    "db:push": "deno --env -A --node-modules-dir npm:drizzle-kit push"
   },
   "imports": {
     "@faker-js/faker": "npm:@faker-js/faker@^9.7.0",
