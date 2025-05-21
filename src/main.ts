@@ -174,10 +174,8 @@ app.patch("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
 // Product section
 app.post("/product", JWTmiddleware.validateToken, async (req, res) => {
   const product = req.body;
-  
 
   const result = await productHandler.createProduct(product);
-  
 
   res.status(result.status).json({
     message: result.message,
@@ -205,7 +203,6 @@ app.get("/products", JWTmiddleware.validateToken, async (_req, res) => {
     error: result.error,
   });
 });
-
 
 app.get("/hidden", JWTmiddleware.validateToken, (_req, res) => {
   res.status(200).json({ message: "This is a hidden route" });

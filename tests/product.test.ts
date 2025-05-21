@@ -7,7 +7,7 @@ import { AuthenticationService } from "../src/services/AuthenticationService.ts"
 import { ProductService } from "../src/services/ProductService.ts";
 
 describe("Product service", () => {
-  let user: number;
+  let _user: number;
 
   beforeAll(async () => {
     const db = new MockDatabase();
@@ -16,7 +16,7 @@ describe("Product service", () => {
     const newUser = generateMockUser();
     const userPassword = generateMockPassword();
 
-    user = await authenticationService.registerUser(newUser, userPassword);
+    _user = await authenticationService.registerUser(newUser, userPassword);
   });
 
   it("should create a new product", async () => {
