@@ -9,6 +9,16 @@ import { addMessage } from "./lc/model.ts";
 import { ValidateJWT } from "./middlewares/ValidateJWT.ts";
 import { AuthenticationService } from "./services/AuthenticationService.ts";
 
+// Importing the Socket interface from socket.io
+declare module "npm:socket.io" {
+  interface Socket {
+    user?: {
+      id: number;
+      name: string;
+    };
+  }
+}
+
 const app = express();
 
 // Instantiate the services
@@ -96,9 +106,9 @@ app.post("/auth/login", async (req, res) => {
 app.post("/order", JWTmiddleware.validateToken, async (req, res) => {
   const order = req.body;
   const userId = req.user!.id;
-
+  
   const result = await orderHandler.createOrder(order, userId as number);
-
+  
   res.status(result.status).json({
     message: result.message,
     data: result.data,
@@ -111,7 +121,7 @@ app.get("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
   const userId = req.user!.id;
 
   const result = await orderHandler.getOrderById(Number(id), userId as number);
-
+  
   res.status(result.status).json({
     message: result.message,
     data: result.data,
@@ -121,7 +131,7 @@ app.get("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
 
 app.get("/orders", async (_req, res) => {
   const result = await orderHandler.getOrders();
-
+  
   res.status(result.status).json({
     message: result.message,
     data: result.data,
@@ -190,14 +200,14 @@ io.use((socket, next) => {
   socket.user = {
     id: 2,
     name: "Lucas",
-  };
+  }
 
   next();
 });
 
 io.on("connection", (socket) => {
   socket.on("message", async (e) => {
-    await addMessage({ message: e, user: socket.user }).then((final) => {
+    await addMessage({message: e, user: socket.user!}).then((final) => {
       socket.emit("message", final);
     });
   });

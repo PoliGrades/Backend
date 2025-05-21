@@ -8,12 +8,3 @@ declare namespace Express {
     };
   }
 }
-
-declare module "socket.io" {
-  interface Socket {
-    user?: {
-      id: number;
-      name: string;
-    };
-  }
-}
