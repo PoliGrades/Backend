@@ -3,6 +3,7 @@ import { beforeAll, describe, it } from "jsr:@std/testing/bdd";
 import request from "supertest";
 import { wsServer } from "../src/main.ts";
 import { generateMockOrder } from "../src/mocks/Order.ts";
+import { generateMockProduct } from "../src/mocks/Product.ts";
 import { generateMockPassword, generateMockUser } from "../src/mocks/User.ts";
 
 describe("Routes", () => {
@@ -190,6 +191,95 @@ describe("Routes", () => {
               quantity: 2,
             },
           ],
+        });
+
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe("GET /orders", () => {
+    let token: string;
+
+    beforeAll(async () => {
+      const newUser = generateMockUser();
+      const password = generateMockPassword();
+
+      await request(wsServer)
+        .post("/auth/register")
+        .send({
+          name: newUser.name,
+          email: newUser.email,
+          document: newUser.document,
+          password: password,
+        }).then((res) => {
+          token = res.headers["set-cookie"][0].split("=")[1].split(";")[0];
+        });
+
+      await request(wsServer)
+        .post("/order")
+        .set("Cookie", `token=${token}`)
+        .send(generateMockOrder());
+    });
+
+    it("should get all orders", async () => {
+      const res = await request(wsServer)
+        .get("/orders")
+        .set("Cookie", `token=${token}`);
+
+      expect(res.status).toBe(200);
+    });
+
+    it("should not get orders without a valid JWT", async () => {
+      const res = await request(wsServer)
+        .get("/orders");
+
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe("POST /product", () => {
+    let token: string;
+
+    beforeAll(async () => {
+      const newUser = generateMockUser();
+      const password = generateMockPassword();
+
+      await request(wsServer)
+        .post("/auth/register")
+        .send({
+          name: newUser.name,
+          email: newUser.email,
+          document: newUser.document,
+          password: password,
+        }).then((res) => {
+          token = res.headers["set-cookie"][0].split("=")[1].split(";")[0];
+        });
+    });
+
+    it("should create a new product", async () => {
+      const res = await request(wsServer)
+        .post("/product")
+        .set("Cookie", `token=${token}`)
+        .send(generateMockProduct());
+
+      expect(res.status).toBe(201);
+    });
+
+    it("should not create a new product without a valid JWT", async () => {
+      const res = await request(wsServer)
+        .post("/product")
+        .send(generateMockProduct());
+
+      expect(res.status).toBe(401);
+    });
+
+    it("should not create a new product with invalid data", async () => {
+      const res = await request(wsServer)
+        .post("/product")
+        .set("Cookie", `token=${token}`)
+        .send({
+          ...generateMockProduct(),
+          price: "invalid_price",
         });
 
       expect(res.status).toBe(400);

@@ -21,7 +21,13 @@ export class OrderService {
       userId: id,
     };
 
-    const newOrder = await this.db.insert(orderTable, order as IOrder);
+    const newOrder = await this.db.insert(orderTable, {
+      userId: order.userId,
+      status: order.status,
+      total: order.total,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as IOrder);
     if (!newOrder) {
       throw new Error("There was an error creating your order");
     }
@@ -73,6 +79,11 @@ export class OrderService {
       throw new Error("No items found for this order");
     }
 
+    for (const item of items) {
+      //@ts-ignore yes
+      delete item.table;
+    }
+
     return items;
   }
 
@@ -100,6 +111,12 @@ export class OrderService {
 
   async getOrders() {
     const orders = await this.db.selectAll(orderTable);
+    for (const order of orders) {
+      const items = await this.getOrderItems(order.id);
+      //@ts-ignore yes
+      order.items = items;
+    }
+
     if (!orders) {
       throw new Error("No orders found");
     }

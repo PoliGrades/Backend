@@ -1,4 +1,5 @@
 import {
+  boolean,
   doublePrecision,
   pgEnum,
   pgTable,
@@ -52,6 +53,7 @@ export const product = pgTable("product", {
   name: text("name").notNull(),
   description: text("description"),
   price: doublePrecision().notNull(),
+  available: boolean("available").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });

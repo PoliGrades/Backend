@@ -37,3 +37,13 @@ export const orderSchema = z.object({
   createdAt: z.date().describe("Data de criação do pedido"),
   updatedAt: z.date().describe("Data de atualização do pedido"),
 });
+
+export const productSchema = z.object({
+  id: z.number().describe("ID do produto").optional(),
+  name: z.string().describe("Nome do produto"),
+  price: z.number().describe("Preço do produto"),
+  description: z.string().describe("Descrição do produto").optional(),
+  available: z.boolean().describe("Disponibilidade do produto"),
+  createdAt: z.date().describe("Data de criação do produto"),
+  updatedAt: z.date().describe("Data de atualização do produto"),
+});

@@ -46,8 +46,8 @@ export class AuthenticationService {
     await this.db.insert(saltTable, {
       userId: newUser.id,
       salt: salt,
-    })
-    
+    });
+
     return newUser.id;
   }
 

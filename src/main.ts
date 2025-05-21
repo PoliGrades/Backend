@@ -5,6 +5,7 @@ import cors from "npm:cors";
 import { Server } from "npm:socket.io";
 import { MockDatabase } from "./database/MockDatabase.ts";
 import { OrderHandler } from "./handlers/OrderHandler.ts";
+import { ProductHandler } from "./handlers/ProductHandler.ts";
 import { addMessage } from "./lc/model.ts";
 import { ValidateJWT } from "./middlewares/ValidateJWT.ts";
 import { AuthenticationService } from "./services/AuthenticationService.ts";
@@ -28,6 +29,7 @@ const JWTmiddleware = new ValidateJWT(authenticationService);
 
 // Instantiate the handlers
 export const orderHandler = new OrderHandler(db);
+export const productHandler = new ProductHandler(db);
 
 app.use(cookieParser());
 app.use(express.json());
@@ -106,9 +108,9 @@ app.post("/auth/login", async (req, res) => {
 app.post("/order", JWTmiddleware.validateToken, async (req, res) => {
   const order = req.body;
   const userId = req.user!.id;
-  
+
   const result = await orderHandler.createOrder(order, userId as number);
-  
+
   res.status(result.status).json({
     message: result.message,
     data: result.data,
@@ -121,7 +123,7 @@ app.get("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
   const userId = req.user!.id;
 
   const result = await orderHandler.getOrderById(Number(id), userId as number);
-  
+
   res.status(result.status).json({
     message: result.message,
     data: result.data,
@@ -129,9 +131,9 @@ app.get("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
   });
 });
 
-app.get("/orders", async (_req, res) => {
+app.get("/orders", JWTmiddleware.validateToken, async (_req, res) => {
   const result = await orderHandler.getOrders();
-  
+
   res.status(result.status).json({
     message: result.message,
     data: result.data,
@@ -169,6 +171,42 @@ app.patch("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
   });
 });
 
+// Product section
+app.post("/product", JWTmiddleware.validateToken, async (req, res) => {
+  const product = req.body;
+  
+
+  const result = await productHandler.createProduct(product);
+  
+
+  res.status(result.status).json({
+    message: result.message,
+    data: result.data,
+    error: result.error,
+  });
+});
+
+app.get("/product/:id", JWTmiddleware.validateToken, async (req, res) => {
+  const { id } = req.params;
+
+  const result = await productHandler.getProductById(Number(id));
+  res.status(result.status).json({
+    message: result.message,
+    data: result.data,
+    error: result.error,
+  });
+});
+
+app.get("/products", JWTmiddleware.validateToken, async (_req, res) => {
+  const result = await productHandler.getProducts();
+  res.status(result.status).json({
+    message: result.message,
+    data: result.data,
+    error: result.error,
+  });
+});
+
+
 app.get("/hidden", JWTmiddleware.validateToken, (_req, res) => {
   res.status(200).json({ message: "This is a hidden route" });
 });
@@ -200,14 +238,14 @@ io.use((socket, next) => {
   socket.user = {
     id: 2,
     name: "Lucas",
-  }
+  };
 
   next();
 });
 
 io.on("connection", (socket) => {
   socket.on("message", async (e) => {
-    await addMessage({message: e, user: socket.user!}).then((final) => {
+    await addMessage({ message: e, user: socket.user! }).then((final) => {
       socket.emit("message", final);
     });
   });
