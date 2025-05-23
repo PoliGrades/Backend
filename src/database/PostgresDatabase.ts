@@ -20,7 +20,7 @@ export class PostgresDatabase implements IDatabase {
         ? Deno.env.get("DATABASE_URL")
         : Deno.env.get("TEST_DATABASE_URL"),
       {
-        logger: true,
+        logger: false,
       },
     );
   }

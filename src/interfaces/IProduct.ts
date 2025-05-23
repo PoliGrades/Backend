@@ -4,6 +4,7 @@ export interface IProduct {
   description: string;
   price: number;
   available: boolean;
+  type: string;
   createdAt: Date;
   updatedAt: Date;
 }

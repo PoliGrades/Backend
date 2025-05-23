@@ -1,13 +1,8 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
-import { IOrder } from "../interfaces/IOrder.ts";
-import { io, orderHandler, pendingConfirmation } from "../main.ts";
-
-const availableItems = [
-  { id: 1, name: "Hamburguer", price: 10.0 },
-  { id: 2, name: "Pizza", price: 5.0 },
-  { id: 3, name: "Salada", price: 15.0 },
-];
+import { IOrder, IOrderItem } from "../interfaces/IOrder.ts";
+import { IProduct } from "../interfaces/IProduct.ts";
+import { io, orderHandler, pendingConfirmation, productHandler } from "../main.ts";
 
 export const createOrder = tool(
   async ({ items, userId }: {
@@ -18,22 +13,25 @@ export const createOrder = tool(
     }[];
     userId: number;
   }) => {
-    const parsedItems = items.map((itemName) => {
-      const item = availableItems.find((i) =>
-        i.name.toLowerCase() === itemName.name.toLowerCase()
-      );
-      if (item) {
-        return {
-          id: item.id,
-          name: item.name,
-          quantity: itemName.quantity,
-          price: item.price,
-          observation: itemName.observation,
-        };
-      } else {
-        return null;
+    const products = await productHandler.getProducts();
+    const parsedItems: IOrderItem[] = items.map((item) => {
+      const product = products.data.find((p: IProduct) => p.name === item.name && p.available == true);
+      
+      if (!product) {
+        throw new Error(`Produto ${item.name} não encontrado.`);
       }
-    }).filter((item) => item !== null);
+      if (item.quantity <= 0) {
+        throw new Error(`Quantidade inválida para o produto ${item.name}.`);
+      }
+
+      return {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: item.quantity,
+        observation: item.observation,
+      };
+    });
 
     if (parsedItems.length === 0) {
       return `Nenhum item encontrado.`;
@@ -44,6 +42,7 @@ export const createOrder = tool(
       userId: Number(userId),
       status: "pending",
       items: parsedItems,
+      paymentMethod: "credit_card",
       total: parsedItems.reduce(
         (acc, item) => acc + item.price * item.quantity,
         0,

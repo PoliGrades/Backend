@@ -1,6 +1,7 @@
 import {
-  order as orderTable,
   orderItem as orderItemTable,
+  order as orderTable,
+  product as productTable,
 } from "../database/schema.ts";
 import { IDatabase } from "../interfaces/IDatabase.ts";
 import { IOrder } from "../interfaces/IOrder.ts";
@@ -80,6 +81,19 @@ export class OrderService {
     }
 
     for (const item of items) {
+      const product = await this.db.selectByField(
+        productTable,
+        "id",
+        item.productId,
+      );
+      if (!product) {
+        throw new Error("Product not found");
+      }
+      //@ts-ignore yes
+      item.name = product[0].name;
+    }
+
+    for (const item of items) {
       //@ts-ignore yes
       delete item.table;
     }
@@ -121,6 +135,8 @@ export class OrderService {
       throw new Error("No orders found");
     }
 
+    console.log(orders);
+
     return orders;
   }
 
@@ -151,13 +167,14 @@ export class OrderService {
   async updateOrderStatus(
     id: number,
     status: "pending" | "completed" | "canceled",
+    paymentMethod: "credit_card" | "debit_card" | "pix" | "cash",
   ) {
     const existingOrder = await this.db.select(orderTable, id);
     if (!existingOrder) {
       throw new Error("Order not found");
     }
 
-    const updatedOrder = await this.db.update(orderTable, id, { status });
+    const updatedOrder = await this.db.update(orderTable, id, { status, paymentMethod });
     return updatedOrder;
   }
 }

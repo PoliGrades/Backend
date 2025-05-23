@@ -207,7 +207,7 @@ export class OrderHandler {
   async updateOrderStatus(
     id: number,
     status: "pending" | "completed" | "canceled",
-    userId: number,
+    paymentMethod: "credit_card" | "debit_card" | "pix" | "cash",
   ): Promise<IHandlerReturn> {
     try {
       const userOrder = await this.orderService.getOrder(id);
@@ -216,16 +216,12 @@ export class OrderHandler {
           status: 404,
           message: "Order not found",
         };
-      } else if (userOrder.userId !== userId) {
-        return {
-          status: 403,
-          message: "You do not have permission to update this order",
-        };
       }
 
       const updatedOrder = await this.orderService.updateOrderStatus(
         id,
         status,
+        paymentMethod,
       );
       if (!updatedOrder) {
         return {

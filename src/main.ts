@@ -3,7 +3,7 @@ import express from "express";
 import { createServer } from "node:http";
 import cors from "npm:cors";
 import { Server } from "npm:socket.io";
-import { MockDatabase } from "./database/MockDatabase.ts";
+import { PostgresDatabase } from "./database/PostgresDatabase.ts";
 import { OrderHandler } from "./handlers/OrderHandler.ts";
 import { ProductHandler } from "./handlers/ProductHandler.ts";
 import { addMessage } from "./lc/model.ts";
@@ -23,7 +23,7 @@ declare module "npm:socket.io" {
 const app = express();
 
 // Instantiate the services
-const db = new MockDatabase();
+const db = new PostgresDatabase();
 const authenticationService = new AuthenticationService(db);
 const JWTmiddleware = new ValidateJWT(authenticationService);
 
@@ -35,13 +35,41 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use(cors({
-  origin: "*",
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173", // Add alternative localhost address
+  ],
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Origin",
+    "X-Requested-With",
+    "Accept",
+  ],
+  credentials: true,
+  exposedHeaders: ["Authorization"], // Important for Clerk
 }));
 
 export const wsServer = createServer(app);
 export const io = new Server(wsServer, {
   cors: {
-    origin: "*",
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "http://127.0.0.1:5173", // Add alternative localhost address
+    ],
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Origin",
+      "X-Requested-With",
+      "Accept",
+    ],
+    credentials: true,
+    exposedHeaders: ["Authorization"], // Important for Clerk
   },
 });
 
@@ -68,7 +96,15 @@ app.post("/auth/register", async (req, res) => {
       sameSite: "strict",
     });
 
-    res.status(201).send();
+    res.status(201).json({
+      message: "User created successfully",
+      data: {
+        id: userId,
+        name,
+        email,
+        document,
+      },
+    });
   } catch (error: unknown) {
     if (!(error instanceof Error)) {
       throw error;
@@ -131,7 +167,8 @@ app.get("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
   });
 });
 
-app.get("/orders", JWTmiddleware.validateToken, async (_req, res) => {
+// TODO: Add JWT validation
+app.get("/orders", async (_req, res) => {
   const result = await orderHandler.getOrders();
 
   res.status(result.status).json({
@@ -153,15 +190,16 @@ app.delete("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
   });
 });
 
-app.patch("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
+// TODO: Add JWT validation
+app.patch("/order/:id", async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
-  const userId = req.user!.id;
+  const { status, paymentMethod } = req.body;
+  // const _userId = req.user!.id;
 
   const result = await orderHandler.updateOrderStatus(
     Number(id),
     status,
-    userId as number,
+    paymentMethod ? paymentMethod : undefined,
   );
 
   res.status(result.status).json({
@@ -170,9 +208,9 @@ app.patch("/order/:id", JWTmiddleware.validateToken, async (req, res) => {
     error: result.error,
   });
 });
-
+// TODO: Add JWT validation
 // Product section
-app.post("/product", JWTmiddleware.validateToken, async (req, res) => {
+app.post("/product", async (req, res) => {
   const product = req.body;
 
   const result = await productHandler.createProduct(product);
@@ -195,7 +233,8 @@ app.get("/product/:id", JWTmiddleware.validateToken, async (req, res) => {
   });
 });
 
-app.get("/products", JWTmiddleware.validateToken, async (_req, res) => {
+// TODO: Add JWT validation
+app.get("/products", async (_req, res) => {
   const result = await productHandler.getProducts();
   res.status(result.status).json({
     message: result.message,

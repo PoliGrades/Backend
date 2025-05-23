@@ -44,6 +44,7 @@ export const order = pgTable("order", {
   userId: serial("user_id").references(() => user.id),
   status: orderStatusEnum("status").notNull(),
   total: doublePrecision(),
+  paymentMethod: text("paymentMethod"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });
@@ -54,6 +55,7 @@ export const product = pgTable("product", {
   description: text("description"),
   price: doublePrecision().notNull(),
   available: boolean("available").notNull().default(true),
+  type: text("type").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });

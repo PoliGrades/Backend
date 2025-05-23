@@ -7,6 +7,7 @@ export function generateMockProduct(): Partial<IProduct> {
     description: faker.food.description(),
     price: faker.number.float({ min: 10.0, max: 50.0 }),
     available: true,
+    type: "Pizza",
     createdAt: faker.date.recent(),
     updatedAt: faker.date.future(),
   };
