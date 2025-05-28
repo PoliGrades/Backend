@@ -14,7 +14,7 @@ export function generateMockOrder(): Partial<IOrder> {
 
   return {
     id: faker.number.int({ min: 1, max: 1000 }),
-    status: faker.helpers.arrayElement(["pending", "completed", "canceled"]),
+    status: faker.helpers.arrayElement(["pending", "completed", "canceled", "paid"]),
     items: orderItems,
     paymentMethod: faker.helpers.arrayElement([
       "credit_card",

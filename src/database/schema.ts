@@ -12,6 +12,7 @@ export const orderStatusEnum = pgEnum("order_status", [
   "pending",
   "completed",
   "canceled",
+  "paid",
 ]);
 
 export const user = pgTable("user", {

@@ -1,7 +1,7 @@
 export type IOrder = {
   id?: number;
   userId: number;
-  status: "pending" | "completed" | "canceled";
+  status: "pending" | "completed" | "canceled" | "paid";
   items: IOrderItem[];
   paymentMethod: "credit_card" | "debit_card" | "pix" | "cash";
   total: number;

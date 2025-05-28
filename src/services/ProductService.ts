@@ -41,4 +41,12 @@ export class ProductService {
     }
     return newProduct;
   }
+
+  async deleteProduct(id: number) {
+    const deletedProduct = await this.db.delete(productTable, id);
+    if (!deletedProduct) {
+      throw new Error("There was an error deleting the product");
+    }
+    return deletedProduct;
+  }
 }

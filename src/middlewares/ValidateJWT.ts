@@ -19,6 +19,7 @@ export class ValidateJWT {
 
     await this.authService.verifyJWT(token)
       .then((res) => {
+        console.log("JWT validated successfully");
         if (res) {
           //@ts-ignore just to avoid the error
           req.user = res;

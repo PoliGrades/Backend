@@ -104,4 +104,31 @@ export class ProductHandler {
       };
     }
   }
+
+  async deleteProduct(id: number): Promise<IHandlerReturn> {
+    try {
+      const deleted = await this.productService.deleteProduct(id);
+      if (!deleted) {
+        return {
+          status: 404,
+          message: "Product not found",
+        };
+      }
+
+      return {
+        status: 200,
+        message: "Product deleted successfully",
+      };
+    } catch (error) {
+      if (!(error instanceof Error)) {
+        throw error;
+      }
+
+      return {
+        status: 500,
+        message: "Error deleting product",
+        error: error.message,
+      };
+    }
+  }
 }

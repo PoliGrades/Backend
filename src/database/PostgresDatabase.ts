@@ -25,6 +25,10 @@ export class PostgresDatabase implements IDatabase {
     );
   }
 
+  getDatabase(): NodePgDatabase {
+    return this.db;
+  }
+
   async insert<T extends TableConfig>(
     table: PgTableWithColumns<T>,
     data: InferInsertModel<PgTableWithColumns<T>>,
