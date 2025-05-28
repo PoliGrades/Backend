@@ -30,7 +30,7 @@ export const orderSchema = z.object({
     "pending",
     "completed",
     "canceled",
-    "paid"
+    "paid",
   ]).describe("Status do pedido"),
   paymentMethod: z.enum([
     "credit_card",

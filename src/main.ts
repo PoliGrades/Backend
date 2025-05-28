@@ -11,6 +11,7 @@ import { ProductHandler } from "./handlers/ProductHandler.ts";
 import { addMessage } from "./lc/model.ts";
 import { ValidateJWT } from "./middlewares/ValidateJWT.ts";
 import { AuthenticationService } from "./services/AuthenticationService.ts";
+import { PostgresDatabase } from "./database/PostgresDatabase.ts";
 
 // Importing the Socket interface from socket.io
 declare module "npm:socket.io" {
@@ -80,7 +81,6 @@ app.post("/auth/register", async (req, res) => {
   try {
     const userId = await authenticationService.registerUser(
       {
-        id: 123,
         name,
         email,
         document,
@@ -163,7 +163,7 @@ app.post("/auth/logout", JWTmiddleware.validateToken, (req, res) => {
 
 app.get("/company", JWTmiddleware.validateToken, async (_req, res) => {
   const database = db.getDatabase();
-  
+
   const data: {
     orderCount: number;
     productCount: number;
@@ -175,7 +175,7 @@ app.get("/company", JWTmiddleware.validateToken, async (_req, res) => {
     productCount: 0,
     monthlyRevenue: 0,
     mostOrderedProduct: null,
-  }
+  };
 
   try {
     // Get order count
@@ -195,10 +195,18 @@ app.get("/company", JWTmiddleware.validateToken, async (_req, res) => {
     // Get monthly revenue
     const monthlyRevenue = await database
       .select({
-        total: order.total
+        total: order.total,
       })
       .from(order)
-      .where(and(gte(order.createdAt, new Date(new Date().getFullYear(), new Date().getMonth(), 1)), eq(order.status, "paid")))
+      .where(
+        and(
+          gte(
+            order.createdAt,
+            new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          ),
+          eq(order.status, "paid"),
+        ),
+      )
       .then((e) => e.reduce((acc, curr) => acc + (curr.total || 0), 0));
     data.monthlyRevenue = monthlyRevenue;
 
@@ -212,7 +220,7 @@ app.get("/company", JWTmiddleware.validateToken, async (_req, res) => {
       .groupBy(orderItem.productId, orderItem.quantity)
       .limit(1)
       .then((e) => e[0] || null);
-    
+
     if (mostOrderedProduct) {
       const productDetails = await database
         .select()
@@ -222,8 +230,6 @@ app.get("/company", JWTmiddleware.validateToken, async (_req, res) => {
       data.mostOrderedProduct = productDetails.name;
     }
 
-    console.log(data);
-
     res.status(200).json({
       message: "Company data retrieved successfully",
       data,
@@ -232,7 +238,7 @@ app.get("/company", JWTmiddleware.validateToken, async (_req, res) => {
     if (!(error instanceof Error)) {
       throw error;
     }
-    
+
     res.status(500).json({ error: error.message });
   }
 });
@@ -362,7 +368,9 @@ export const userIds = new Map();
 
 io.use(async (socket, next) => {
   const cookies = socket.handshake.headers.cookie?.split("; ") || [];
-  const token = cookies?.find((cookie) => cookie.startsWith("token="))?.split("=")[1];
+  const token = cookies?.find((cookie) => cookie.startsWith("token="))?.split(
+    "=",
+  )[1];
 
   if (!token) {
     return next(new Error("Authentication error"));
@@ -370,7 +378,6 @@ io.use(async (socket, next) => {
 
   await authenticationService.verifyJWT(token)
     .then((user) => {
-      console.log(user);
       if (!user) {
         return next(new Error("Authentication error"));
       }

@@ -2,7 +2,12 @@ import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { IOrder, IOrderItem } from "../interfaces/IOrder.ts";
 import { IProduct } from "../interfaces/IProduct.ts";
-import { io, orderHandler, pendingConfirmation, productHandler } from "../main.ts";
+import {
+  io,
+  orderHandler,
+  pendingConfirmation,
+  productHandler,
+} from "../main.ts";
 
 export const createOrder = tool(
   async ({ items, userId }: {
@@ -15,8 +20,10 @@ export const createOrder = tool(
   }) => {
     const products = await productHandler.getProducts();
     const parsedItems: IOrderItem[] = items.map((item) => {
-      const product = products.data.find((p: IProduct) => p.name === item.name && p.available == true);
-      
+      const product = products.data.find((p: IProduct) =>
+        p.name === item.name && p.available == true
+      );
+
       if (!product) {
         throw new Error(`Produto ${item.name} não encontrado.`);
       }

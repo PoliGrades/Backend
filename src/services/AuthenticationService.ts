@@ -22,17 +22,17 @@ export class AuthenticationService {
   }
 
   @validateData(userSchema)
-  async registerUser(user: IUser, password: string): Promise<number> {
+  async registerUser(user: Partial<IUser>, password: string): Promise<number> {
     const existingUser = await this.db.selectByField(
       userTable,
       "email",
-      user.email,
+      user.email as string,
     );
     if (existingUser.length > 0) {
       throw new Error("User already exists");
     }
 
-    const newUser = await this.db.insert(userTable, user);
+    const newUser = await this.db.insert(userTable, user as IUser);
 
     const salt = await bcrypt.genSalt(10);
 

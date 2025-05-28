@@ -1,6 +1,6 @@
 import {
-  orderItem as orderItemTable,
   order as orderTable,
+  orderItem as orderItemTable,
   product as productTable,
 } from "../database/schema.ts";
 import { IDatabase } from "../interfaces/IDatabase.ts";
@@ -135,8 +135,6 @@ export class OrderService {
       throw new Error("No orders found");
     }
 
-    console.log(orders);
-
     return orders;
   }
 
@@ -174,7 +172,10 @@ export class OrderService {
       throw new Error("Order not found");
     }
 
-    const updatedOrder = await this.db.update(orderTable, id, { status, paymentMethod });
+    const updatedOrder = await this.db.update(orderTable, id, {
+      status,
+      paymentMethod,
+    });
     return updatedOrder;
   }
 }
