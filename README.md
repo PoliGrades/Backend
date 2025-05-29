@@ -68,3 +68,24 @@ deno task db:migrate
 ```bash
 deno task start
 ```
+
+## Como executar os testes:
+
+1. Clone o repositório:
+
+```bash
+git clone https://github.com/PoliEats/Backend.git
+cd Backend
+```
+
+2. Instale o Deno:
+
+```bash
+irm https://deno.land/install.ps1 | iex
+```
+
+3. Execute os testes:
+
+```bash
+deno task test
+```
