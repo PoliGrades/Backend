@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # Updated to newer version
+        uses: actions/checkout@v4 # Updated to newer version
 
       - name: Set up Deno
         uses: denoland/setup-deno@v1

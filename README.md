@@ -4,15 +4,19 @@
 
 ## Descrição:
 
-O PoliGrades é uma plataforma de gerenciamento de notas desenvolvida para o colégio **Poliedro**.
-O sistema permite que professores registrem e gerenciem as notas dos alunos de forma eficiente, enquanto os alunos podem acessar suas notas e acompanhar seu desempenho acadêmico.
+O PoliGrades é uma plataforma de gerenciamento de notas desenvolvida para o
+colégio **Poliedro**. O sistema permite que professores registrem e gerenciem as
+notas dos alunos de forma eficiente, enquanto os alunos podem acessar suas notas
+e acompanhar seu desempenho acadêmico.
 
 ## Funcionalidades:
 
-- **Registro de Notas**: Os professores podem registrar notas para os alunos em diferentes disciplinas.
-- **Consulta de Notas**: Os alunos podem consultar suas notas a qualquer momento.
-- **Exportação de Relatórios**: Geração de relatórios de desempenho acadêmico para alunos e professores.
-
+- **Registro de Notas**: Os professores podem registrar notas para os alunos em
+  diferentes disciplinas.
+- **Consulta de Notas**: Os alunos podem consultar suas notas a qualquer
+  momento.
+- **Exportação de Relatórios**: Geração de relatórios de desempenho acadêmico
+  para alunos e professores.
 
 ## Tecnologias Utilizadas:
 
