@@ -30,3 +30,12 @@ export const taskSchema = z.object({
   createdAt: z.date().describe("Data de criação da tarefa"),
   updatedAt: z.date().describe("Data de atualização da tarefa"),
 });
+
+export const gradeSchema = z.object({
+  id: z.number().describe("ID da nota").optional(),
+  taskId: z.number().describe("ID da tarefa"),
+  studentId: z.number().describe("ID do estudante"),
+  grade: z.number().describe("Nota do estudante"),
+  createdAt: z.date().describe("Data de criação da nota"),
+  updatedAt: z.date().describe("Data de atualização da nota"),
+});
