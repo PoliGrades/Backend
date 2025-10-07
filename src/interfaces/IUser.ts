@@ -8,7 +8,7 @@ export interface IUser {
   id: number;
   name: string;
   email: string;
-  document: string;
+  role: "PROFESSOR" | "STUDENT";
   createdAt: Date;
   updatedAt: Date;
 }

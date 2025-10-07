@@ -18,7 +18,7 @@ export class AuthenticationService {
   constructor(db: IDatabase) {
     this.db = db;
 
-    this.secretKey = new TextEncoder().encode("poli_eats");
+    this.secretKey = new TextEncoder().encode("poli_grades");
   }
 
   @validateData(userSchema)

@@ -1,25 +1,18 @@
 import {
-  boolean,
-  doublePrecision,
   pgEnum,
   pgTable,
   serial,
   text,
-  timestamp,
+  timestamp
 } from "drizzle-orm/pg-core";
 
-export const orderStatusEnum = pgEnum("order_status", [
-  "pending",
-  "completed",
-  "canceled",
-  "paid",
-]);
+export const userRoleEnum = pgEnum("user_role", ["PROFESSOR", "STUDENT"]);
 
 export const user = pgTable("user", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  document: text("document").notNull().unique(),
+  role: userRoleEnum("role").notNull().default("STUDENT"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });
@@ -40,34 +33,27 @@ export const password = pgTable("password", {
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });
 
-export const order = pgTable("order", {
-  id: serial("id").primaryKey(),
-  userId: serial("user_id").references(() => user.id),
-  status: orderStatusEnum("status").notNull(),
-  total: doublePrecision(),
-  paymentMethod: text("paymentMethod"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
-});
-
-export const product = pgTable("product", {
+export const classTable = pgTable("class", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  description: text("description"),
-  price: doublePrecision().notNull(),
-  available: boolean("available").notNull().default(true),
-  type: text("type").notNull(),
+  subject: text("subject").notNull(),
+  ownerId: serial("owner_id").references(() => user.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });
 
-export const orderItem = pgTable("order_item", {
+export const enrollment = pgTable("enrollment", {
   id: serial("id").primaryKey(),
-  orderId: serial("order_id").references(() => order.id),
-  productId: serial("product_id").references(() => product.id),
-  quantity: doublePrecision(),
-  price: doublePrecision(),
-  observation: text("observation"),
+  userId: serial("user_id").references(() => user.id),
+  classId: serial("class_id").references(() => classTable.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
+});
+
+export const grade = pgTable("grade", {
+  id: serial("id").primaryKey(),
+  enrollmentId: serial("enrollment_id").references(() => enrollment.id),
+  value: text("value").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });

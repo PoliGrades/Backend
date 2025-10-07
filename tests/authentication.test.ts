@@ -19,7 +19,7 @@ describe("User authentication", () => {
     expect(registeredUser).toBeDefined();
     expect(registeredUser?.name).toBe(user.name);
     expect(registeredUser?.email).toBe(user.email);
-    expect(registeredUser?.document).toBe(user.document);
+    expect(registeredUser?.role).toBe(user.role);
     expect(registeredUser?.createdAt).toBeDefined();
     expect(registeredUser?.updatedAt).toBeDefined();
   });
