@@ -235,7 +235,9 @@ describe("Class service", () => {
 
     await classService.withdrawEnrollment(enrollment.id, student_user);
 
-    const enrollments = await classService.getEnrollmentsByStudentId(student_user);
+    const enrollments = await classService.getEnrollmentsByStudentId(
+      student_user,
+    );
     expect(enrollments.find((e) => e.id === enrollment.id)).toBeUndefined();
   });
 
@@ -252,7 +254,7 @@ describe("Class service", () => {
 
     const classData = generateMockClass();
     const newClass = await classService.createClass(classData, user);
-    
+
     const enrollment = await classService.enrollStudent(
       newClass,
       student_user,
@@ -264,8 +266,10 @@ describe("Class service", () => {
     expect(enrollment.studentId).toBe(student_user);
 
     await classService.withdrawEnrollment(enrollment.id, user);
-    
-    const enrollments = await classService.getEnrollmentsByStudentId(student_user);
+
+    const enrollments = await classService.getEnrollmentsByStudentId(
+      student_user,
+    );
     expect(enrollments.find((e) => e.id === enrollment.id)).toBeUndefined();
   });
 });
