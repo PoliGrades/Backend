@@ -1,13 +1,14 @@
 name: Build docker image
 
 on:
-    workflow_run:
-        workflows: ["CI/Deno Test"]
-        types: ["completed"]
+    push:
         branches:
-          - homolog
+            - homolog
 
 jobs:
+    run-tests:
+        uses: ./.github/workflows/deno_test.yml
+        
     build-push-ghcr:
         runs-on: ubuntu-latest
 

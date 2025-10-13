@@ -1,10 +1,10 @@
 name: CI/Deno Test
 
 on:
+  workflow_call:
   push:
     branches:
       - main
-      - homolog
 
 jobs:
   test:
