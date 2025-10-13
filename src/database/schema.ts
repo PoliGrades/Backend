@@ -1,10 +1,4 @@
-import {
-  pgEnum,
-  pgTable,
-  serial,
-  text,
-  timestamp
-} from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("user_role", ["PROFESSOR", "STUDENT"]);
 
@@ -44,16 +38,27 @@ export const classTable = pgTable("class", {
 
 export const enrollment = pgTable("enrollment", {
   id: serial("id").primaryKey(),
-  userId: serial("user_id").references(() => user.id),
+  studentId: serial("student_id").references(() => user.id),
   classId: serial("class_id").references(() => classTable.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
+});
+
+export const task = pgTable("task", {
+  id: serial("id").primaryKey(),
+  classId: serial("class_id").references(() => classTable.id),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  dueDate: timestamp("due_date").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });
 
 export const grade = pgTable("grade", {
   id: serial("id").primaryKey(),
-  enrollmentId: serial("enrollment_id").references(() => enrollment.id),
-  value: text("value").notNull(),
+  taskId: serial("task_id").references(() => task.id),
+  studentId: serial("student_id").references(() => user.id),
+  grade: text("grade").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });

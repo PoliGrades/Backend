@@ -19,7 +19,6 @@ describe("Class service", () => {
     const userPassword = generateMockPassword();
 
     user = await authenticationService.registerUser(newUser, userPassword);
-    console.log(user);
   });
 
   it("should create a new class", async () => {
@@ -40,12 +39,16 @@ describe("Class service", () => {
     const studentUser = generateMockUser("STUDENT");
     const studentPassword = generateMockPassword();
 
-    const authenticationService = new AuthenticationService(db);    
-    const student_user = await authenticationService.registerUser(studentUser, studentPassword);
-
-    await expect(classService.createClass(classData, student_user)).rejects.toThrow(
-      "Only professors can create classes"
+    const authenticationService = new AuthenticationService(db);
+    const student_user = await authenticationService.registerUser(
+      studentUser,
+      studentPassword,
     );
+
+    await expect(classService.createClass(classData, student_user)).rejects
+      .toThrow(
+        "Only professors can create classes",
+      );
   });
 
   it("should retrieve all classes", async () => {
@@ -81,39 +84,188 @@ describe("Class service", () => {
     expect(Array.isArray(classes)).toBe(true);
     expect(classes.length).toBeGreaterThan(0);
     expect(classes[0].ownerId).toBe(user);
-    });
+  });
 
-    it("should not allow updating a class by a non-professor", async () => {
-      const classService = new ClassService(db);
+  it("should not allow updating a class by a non-professor", async () => {
+    const classService = new ClassService(db);
 
-      const classData = generateMockClass();
-      const newClass = await classService.createClass(classData, user);
+    const classData = generateMockClass();
+    const newClass = await classService.createClass(classData, user);
 
-      const studentUser = generateMockUser("STUDENT");
-      const studentPassword = generateMockPassword();
+    const studentUser = generateMockUser("STUDENT");
+    const studentPassword = generateMockPassword();
 
-      const authenticationService = new AuthenticationService(db);
-      const student_user = await authenticationService.registerUser(studentUser, studentPassword);
+    const authenticationService = new AuthenticationService(db);
+    const student_user = await authenticationService.registerUser(
+      studentUser,
+      studentPassword,
+    );
 
-      await expect(classService.updateClass(newClass, classData, student_user)).rejects.toThrow(
-        "Only professors can update classes"
+    await expect(classService.updateClass(newClass, classData, student_user))
+      .rejects.toThrow(
+        "Only professors can update classes",
       );
-    });
+  });
 
-    it("should update a class", async () => {
-      const classService = new ClassService(db);
+  it("should update a class", async () => {
+    const classService = new ClassService(db);
 
-      const classData = generateMockClass(user);
-      const newClass = await classService.createClass(classData, user);
+    const classData = generateMockClass(user);
+    const newClass = await classService.createClass(classData, user);
 
-      const updatedClassData: Partial<IClass> = {
-        name: "Updated Class Name",
-      };
+    const updatedClassData: Partial<IClass> = {
+      name: "Updated Class Name",
+    };
 
-      await classService.updateClass(newClass, updatedClassData, user);
+    await classService.updateClass(newClass, updatedClassData, user);
 
-      const updatedClass = await classService.getClassById(newClass);
-      expect(updatedClass).toBeDefined();
-      expect(updatedClass!.name).toBe("Updated Class Name");
-    });
+    const updatedClass = await classService.getClassById(newClass);
+    expect(updatedClass).toBeDefined();
+    expect(updatedClass!.name).toBe("Updated Class Name");
+  });
+
+  it("should delete a class", async () => {
+    const classService = new ClassService(db);
+
+    const classData = generateMockClass(user);
+    const newClass = await classService.createClass(classData, user);
+
+    await classService.deleteClass(newClass, user);
+
+    const deletedClass = await classService.getClassById(newClass);
+    expect(deletedClass).toBeNull();
+  });
+
+  it("should not allow a student to delete a class", async () => {
+    const classService = new ClassService(db);
+
+    const classData = generateMockClass();
+    const newClass = await classService.createClass(classData, user);
+
+    const studentUser = generateMockUser("STUDENT");
+    const studentPassword = generateMockPassword();
+
+    const authenticationService = new AuthenticationService(db);
+    const student_user = await authenticationService.registerUser(
+      studentUser,
+      studentPassword,
+    );
+
+    await expect(classService.deleteClass(newClass, student_user)).rejects
+      .toThrow(
+        "Only professors can delete classes",
+      );
+  });
+
+  it("should enroll a student in a class", async () => {
+    const classService = new ClassService(db);
+    const authenticationService = new AuthenticationService(db);
+    const studentUser = generateMockUser("STUDENT");
+    const studentPassword = generateMockPassword();
+
+    const student_user = await authenticationService.registerUser(
+      studentUser,
+      studentPassword,
+    );
+
+    const classData = generateMockClass();
+    const newClass = await classService.createClass(classData, user);
+
+    const enrollment = await classService.enrollStudent(
+      newClass,
+      student_user,
+      user,
+    );
+
+    expect(enrollment).toBeDefined();
+    expect(enrollment.classId).toBe(newClass);
+    expect(enrollment.studentId).toBe(student_user);
+  });
+
+  it("should not allow a student to enroll another student", async () => {
+    const classService = new ClassService(db);
+    const authenticationService = new AuthenticationService(db);
+    const studentUser1 = generateMockUser("STUDENT");
+    const studentPassword1 = generateMockPassword();
+
+    const student_user1 = await authenticationService.registerUser(
+      studentUser1,
+      studentPassword1,
+    );
+
+    const studentUser2 = generateMockUser("STUDENT");
+    const studentPassword2 = generateMockPassword();
+
+    const student_user2 = await authenticationService.registerUser(
+      studentUser2,
+      studentPassword2,
+    );
+
+    const classData = generateMockClass();
+    const newClass = await classService.createClass(classData, user);
+
+    await expect(
+      classService.enrollStudent(newClass, student_user2, student_user1),
+    ).rejects.toThrow("Only professors can enroll students");
+  });
+
+  it("should allow the user to withdraw himself from a class", async () => {
+    const classService = new ClassService(db);
+    const authenticationService = new AuthenticationService(db);
+    const studentUser = generateMockUser("STUDENT");
+    const studentPassword = generateMockPassword();
+
+    const student_user = await authenticationService.registerUser(
+      studentUser,
+      studentPassword,
+    );
+
+    const classData = generateMockClass();
+    const newClass = await classService.createClass(classData, user);
+
+    const enrollment = await classService.enrollStudent(
+      newClass,
+      student_user,
+      user,
+    );
+
+    expect(enrollment).toBeDefined();
+    expect(enrollment.classId).toBe(newClass);
+    expect(enrollment.studentId).toBe(student_user);
+
+    await classService.withdrawEnrollment(enrollment.id, student_user);
+
+    const enrollments = await classService.getEnrollmentsByStudentId(student_user);
+    expect(enrollments.find((e) => e.id === enrollment.id)).toBeUndefined();
+  });
+
+  it("should allow a professor to withdraw a student from a class", async () => {
+    const classService = new ClassService(db);
+    const authenticationService = new AuthenticationService(db);
+    const studentUser = generateMockUser("STUDENT");
+    const studentPassword = generateMockPassword();
+
+    const student_user = await authenticationService.registerUser(
+      studentUser,
+      studentPassword,
+    );
+
+    const classData = generateMockClass();
+    const newClass = await classService.createClass(classData, user);
+    
+    const enrollment = await classService.enrollStudent(
+      newClass,
+      student_user,
+      user,
+    );
+
+    expect(enrollment).toBeDefined();
+    expect(enrollment.classId).toBe(newClass);
+    expect(enrollment.studentId).toBe(student_user);
+
+    await classService.withdrawEnrollment(enrollment.id, user);
+    
+    const enrollments = await classService.getEnrollmentsByStudentId(student_user);
+    expect(enrollments.find((e) => e.id === enrollment.id)).toBeUndefined();
+  });
 });
