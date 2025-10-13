@@ -1,6 +1,7 @@
 name: CI/Deno Test
 
 on:
+  workflow_call:
   push:
     branches:
       - main

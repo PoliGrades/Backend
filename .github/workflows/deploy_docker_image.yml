@@ -3,9 +3,12 @@ name: Build docker image
 on:
     push:
         branches:
-        - homolog
+            - homolog
 
 jobs:
+    run-tests:
+        uses: ./.github/workflows/deno_test.yml
+        
     build-push-ghcr:
         runs-on: ubuntu-latest
 
@@ -29,4 +32,4 @@ jobs:
             context: .
             file: ./Dockerfile
             push: true
-            tags: ghcr.io/PoliGrades/poligrades-backend:latest
+            tags: ghcr.io/poligrades/poligrades-backend:latest
