@@ -1,9 +1,11 @@
 name: Build docker image
 
 on:
-    push:
+    workflow_run:
+        workflows: ["CI/Deno Test"]
+        types: ["completed"]
         branches:
-        - homolog
+          - homolog
 
 jobs:
     build-push-ghcr:
@@ -29,4 +31,4 @@ jobs:
             context: .
             file: ./Dockerfile
             push: true
-            tags: ghcr.io/PoliGrades/poligrades-backend:latest
+            tags: ghcr.io/poligrades/poligrades-backend:latest
