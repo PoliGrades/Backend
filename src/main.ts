@@ -2,6 +2,8 @@ import cookieParser from "cookie-parser";
 import express from "express";
 import cors from "npm:cors";
 import { MockDatabase } from "./database/MockDatabase.ts";
+import { PostgresDatabase } from "./database/PostgresDatabase.ts";
+import { IDatabase } from "./interfaces/IDatabase.ts";
 import { ValidateJWT } from "./middlewares/ValidateJWT.ts";
 import { AuthenticationService } from "./services/AuthenticationService.ts";
 import { ClassService } from "./services/ClassService.ts";
@@ -9,7 +11,29 @@ import { ClassService } from "./services/ClassService.ts";
 const app = express();
 
 // Instantiate the services
-const db = new MockDatabase();
+const env = Deno.env.toObject();
+
+let db: IDatabase;
+
+if (!env.ENVIRONMENT) {
+  throw new Error("ENVIRONMENT variable is not set");
+}
+
+switch (env.ENVIRONMENT) {
+  case "production":
+    console.log("Running in production mode");
+    db = new PostgresDatabase();
+    break;
+  case "development":
+    console.log("Running in development mode");
+    db = new MockDatabase();
+    break;
+  default:
+    console.log("Running in default (mock) mode");
+    db = new MockDatabase();
+    break;
+}
+
 const authenticationService = new AuthenticationService(db);
 const JWTmiddleware = new ValidateJWT(authenticationService);
 
