@@ -1,10 +1,12 @@
 import cookieParser from "cookie-parser";
 import express from "express";
 import cors from "npm:cors";
+import z from "zod";
 import { MockDatabase } from "./database/MockDatabase.ts";
 import { PostgresDatabase } from "./database/PostgresDatabase.ts";
 import { IDatabase } from "./interfaces/IDatabase.ts";
 import { ValidateJWT } from "./middlewares/ValidateJWT.ts";
+import { userSchema } from "./schemas/zodSchema.ts";
 import { AuthenticationService } from "./services/AuthenticationService.ts";
 import { ClassService } from "./services/ClassService.ts";
 
@@ -46,6 +48,7 @@ app.use(cors({
   origin: [
     "http://localhost:5173",
     "http://localhost:3000",
+    "http://localhost:62800",
     "http://127.0.0.1:5173", // Add alternative localhost address
   ],
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
@@ -62,6 +65,17 @@ app.use(cors({
 
 app.post("/auth/register", async (req, res) => {
   const { name, email, role, password } = req.body;
+
+  try {
+    userSchema.parse({ name, email, role, createdAt: new Date(), updatedAt: new Date() });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: error.errors });
+      return;
+    }
+    throw error;
+  }
+
   try {
     const userId = await authenticationService.registerUser(
       {
