@@ -123,7 +123,7 @@ describe("Task service", () => {
     const taskData = generateMockTask(classId);
 
     const newTask = await taskService.createTask(taskData, classId, userId);
-    
+
     const updatedTitle = "Malicious Update Attempt";
 
     await expect(
@@ -134,14 +134,16 @@ describe("Task service", () => {
   it("should allow the owner of the task to delete it", async () => {
     const taskService = new TaskService(db, classService);
     const taskData = generateMockTask(classId);
-    
+
     const newTask = await taskService.createTask(taskData, classId, userId);
 
     await expect(
-        taskService.deleteTask(newTask.id, userId),
-        ).resolves.not.toThrow();
+      taskService.deleteTask(newTask.id, userId),
+    ).resolves.not.toThrow();
 
-    const fetchedTask = await taskService.getTaskById(newTask.id, userId).catch(e => null);
+    const fetchedTask = await taskService.getTaskById(newTask.id, userId).catch(
+      (e) => null,
+    );
     expect(fetchedTask).toBeNull();
   });
 });

@@ -1,4 +1,11 @@
-import { pgEnum, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  decimal,
+  pgEnum,
+  pgTable,
+  serial,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("user_role", ["PROFESSOR", "STUDENT"]);
 
@@ -58,7 +65,7 @@ export const grade = pgTable("grade", {
   id: serial("id").primaryKey(),
   taskId: serial("task_id").references(() => task.id),
   studentId: serial("student_id").references(() => user.id),
-  grade: text("grade").notNull(),
+  grade: decimal("grade").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });

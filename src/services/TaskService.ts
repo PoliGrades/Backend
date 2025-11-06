@@ -94,7 +94,9 @@ export class TaskService {
       throw new Error("Task not found");
     }
 
-    const classInfo = await this.classService.getClassById(existingTask.classId);
+    const classInfo = await this.classService.getClassById(
+      existingTask.classId,
+    );
 
     if (!classInfo || classInfo.ownerId !== userId) {
       throw new Error("User does not have permission to update this task.");
@@ -120,7 +122,9 @@ export class TaskService {
       throw new Error("Task not found");
     }
 
-    const classInfo = await this.classService.getClassById(existingTask.classId);
+    const classInfo = await this.classService.getClassById(
+      existingTask.classId,
+    );
 
     if (!classInfo || classInfo.ownerId !== userId) {
       throw new Error("User does not have permission to delete this task.");
