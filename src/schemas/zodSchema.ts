@@ -20,3 +20,13 @@ export const classSchema = z.object({
   createdAt: z.date().describe("Data de criação da turma"),
   updatedAt: z.date().describe("Data de atualização da turma"),
 });
+
+export const taskSchema = z.object({
+  id: z.number().describe("ID da tarefa").optional(),
+  classId: z.number().describe("ID da turma"),
+  title: z.string().describe("Título da tarefa"),
+  description: z.string().describe("Descrição da tarefa"),
+  dueDate: z.date().describe("Data de entrega da tarefa"),
+  createdAt: z.date().describe("Data de criação da tarefa"),
+  updatedAt: z.date().describe("Data de atualização da tarefa"),
+});
