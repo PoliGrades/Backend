@@ -1,4 +1,4 @@
-import { Collection, InsertOneResult } from "mongodb";
+import { Collection } from "mongodb";
 import { MongoDBDatabase } from "../database/MongoDBDatabase.ts";
 import { IMessage } from "../interfaces/IMessage.ts";
 import { messageSchema } from "../schemas/zodSchema.ts";
@@ -22,7 +22,7 @@ export class ChatService {
     id: number;
     name: string;
     role: "STUDENT" | "PROFESSOR";
-  }, chat_id: string): Promise<InsertOneResult<IMessage>> {
+  }, chat_id: string): Promise<IMessage> {
     const messageDocument: IMessage = {
       room_id: chat_id,
       sender_id: sender.id,
@@ -37,6 +37,10 @@ export class ChatService {
     }
 
     const result = await this.collection.insertOne(messageDocument);
-    return result;
+    if (!result.acknowledged) {
+      throw new Error("Failed to save message");
+    }
+    
+    return messageDocument;
   }
 }
