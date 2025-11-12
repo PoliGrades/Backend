@@ -36,15 +36,17 @@ export function generateMockCSV(numUsers: number, location?: string): string {
   for (let i = 0; i < numUsers; i++) {
     const user = generateMockUser("STUDENT");
     const password = generateMockPassword();
-  
+
     users.push({ ...user, password });
   }
 
-  const csvData = stringify(users, { columns: ["name", "email", "role", "password"] });
-  
+  const csvData = stringify(users, {
+    columns: ["name", "email", "role", "password"],
+  });
+
   if (location) {
     Deno.writeTextFileSync(location, csvData);
   }
 
-  return csvData
+  return csvData;
 }

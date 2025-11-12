@@ -4,13 +4,11 @@ import express from "express";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import { MockDatabase } from "./database/MockDatabase.ts";
-import { MongoDBDatabase } from "./database/MongoDBDatabase.ts";
 import { PostgresDatabase } from "./database/PostgresDatabase.ts";
 import { IDatabase } from "./interfaces/IDatabase.ts";
-import { IMessage } from "./interfaces/IMessage.ts";
 import { ValidateJWT } from "./middlewares/ValidateJWT.ts";
-import { messageSchema } from "./schemas/zodSchema.ts";
 import { AuthenticationService } from "./services/AuthenticationService.ts";
+import { ChatService } from "./services/ChatService.ts";
 import { ClassService } from "./services/ClassService.ts";
 
 const app = express();
@@ -21,7 +19,7 @@ declare module "socket.io" {
       id: number;
       name: string;
       role: "STUDENT" | "PROFESSOR";
-    }
+    };
   }
 }
 
@@ -49,14 +47,11 @@ switch (env.ENVIRONMENT) {
     break;
 }
 
-const mongoDB = new MongoDBDatabase();
-
-const messageCollection = mongoDB.createCollection<IMessage>("messages");
-
 const authenticationService = new AuthenticationService(db);
 const JWTmiddleware = new ValidateJWT(authenticationService);
 
 const classService = new ClassService(db);
+const chatService = new ChatService();
 
 app.use(cookieParser());
 app.use(express.json());
@@ -214,7 +209,9 @@ io.on("connection", (socket) => {
     socket.join(`chat_${professorID}`);
 
     // Try to retrieve previous messages from MongoDB and send to the user
-    const previousMessages = await messageCollection.find({ room_id: `chat_${professorID}` }).toArray()
+    const previousMessages = await chatService.getMessagesFromChat(
+      `chat_${professorID}`,
+    );
 
     socket.emit("joinedChat", `chat_${professorID}`);
 
@@ -223,37 +220,32 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("sendMessage", async (data: { professorID: number; message: string }) => {
-    const { professorID, message } = data;
-    console.log(data);
+  socket.on(
+    "sendMessage",
+    async (data: { professorID: number; message: string }) => {
+      const { professorID, message } = data;
+      console.log(data);
 
-    const sender = socket.user;
-    if (!sender) {
-      socket.emit("error", "User not authenticated");
-      return;
-    }
+      const sender = socket.user;
+      if (!sender) {
+        socket.emit("error", "User not authenticated");
+        return;
+      }
+      
+      try {
+        const result = await chatService.saveMessage(
+          message,
+          sender,
+          `chat_${professorID}`,
+        );
 
-    const messageDocument: IMessage = {
-      room_id: `chat_${professorID}`,
-      sender_id: sender.id,
-      sender_name: sender.name,
-      sender_role: sender.role,
-      message,
-      timestamp: new Date(),
-    }
+        io.to(`chat_${professorID}`).emit("newMessage", result);
+      } catch (error) {
+        socket.emit("error", error);
+      }
+    },
+  );
 
-    // Validate on Zod schema if needed
-    if (!messageSchema.safeParse(messageDocument).success) {
-      socket.emit("error", "Invalid message format");
-      return;
-    }
-
-    // Save to MongoDB with chat_{professorID} as the chat ID
-    await messageCollection.insertOne(messageDocument);
-
-    // Emit to the professor's room
-    io.to(`chat_${professorID}`).emit("newMessage", messageDocument);
-  });
 });
 
 wsServer.listen(3000, () => {
