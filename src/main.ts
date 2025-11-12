@@ -127,8 +127,8 @@ app.post("/auth/register", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "strict",
+      secure: true,
+      sameSite: "none",
     });
 
     res.status(201).json({
@@ -161,11 +161,16 @@ app.post("/auth/login", async (req, res) => {
     const token = await authenticationService.createJWT(userId.id);
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "strict",
+      secure: true,
+      sameSite: "none",
     });
 
-    res.status(200).send();
+    res.status(200).json({
+      name: userId.name,
+      email: userId.email,
+      role: userId.role,
+      id: userId.id,
+    })
   } catch (error: unknown) {
     if (!(error instanceof Error)) {
       throw error;
