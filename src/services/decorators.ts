@@ -12,7 +12,7 @@ export function validateData(schema: ZodSchema) {
       try {
         await schema.parseAsync(args[0]);
 
-        return originalMethod.apply(this, [args[0], args[1]]);
+        return originalMethod.apply(this, [args[0], ...args.slice(1)]);
       } catch (error) {
         if (error instanceof ZodError) {
           throw new ZodError(error.issues);

@@ -224,10 +224,25 @@ export class ClassService {
 
     // If user is a professor, check if they own the class
     if (user[0].role === "PROFESSOR" && existingClass.ownerId !== userId) {
-      throw new Error("You can only withdraw enrollments from your own classes");
+      throw new Error(
+        "You can only withdraw enrollments from your own classes",
+      );
     }
 
     await this.db.delete(enrollmentTable, enrollmentId);
     return;
+  }
+
+  async isStudentEnrolled(
+    classId: number,
+    studentId: number,
+  ): Promise<boolean> {
+    const enrollments = await this.db.selectByField(
+      enrollmentTable,
+      "classId",
+      classId,
+    );
+
+    return enrollments.some((enrollment) => enrollment.studentId === studentId);
   }
 }
