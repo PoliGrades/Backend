@@ -15,7 +15,7 @@ export class ChatService {
   }
 
   public getMessagesFromChat(chatID: string): Promise<IMessage[]> {
-    return this.collection.find({ chatID }).toArray();
+    return this.collection.find({ room_id: chatID }).toArray();
   }
 
   public async saveMessage(message: string, sender: {
