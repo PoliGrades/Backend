@@ -1,14 +1,29 @@
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import express from "express";
-import cors from "npm:cors";
+import { createServer } from "node:http";
+import { Server } from "socket.io";
 import { MockDatabase } from "./database/MockDatabase.ts";
+import { MongoDBDatabase } from "./database/MongoDBDatabase.ts";
 import { PostgresDatabase } from "./database/PostgresDatabase.ts";
 import { IDatabase } from "./interfaces/IDatabase.ts";
+import { IMessage } from "./interfaces/IMessage.ts";
 import { ValidateJWT } from "./middlewares/ValidateJWT.ts";
+import { messageSchema } from "./schemas/zodSchema.ts";
 import { AuthenticationService } from "./services/AuthenticationService.ts";
 import { ClassService } from "./services/ClassService.ts";
 
 const app = express();
+
+declare module "socket.io" {
+  interface Socket {
+    user?: {
+      id: number;
+      name: string;
+      role: "STUDENT" | "PROFESSOR";
+    }
+  }
+}
 
 // Instantiate the services
 const env = Deno.env.toObject();
@@ -33,6 +48,10 @@ switch (env.ENVIRONMENT) {
     db = new MockDatabase();
     break;
 }
+
+const mongoDB = new MongoDBDatabase();
+
+const messageCollection = mongoDB.createCollection<IMessage>("messages");
 
 const authenticationService = new AuthenticationService(db);
 const JWTmiddleware = new ValidateJWT(authenticationService);
@@ -59,6 +78,27 @@ app.use(cors({
   credentials: true,
   exposedHeaders: ["Authorization"], // Important for Clerk
 }));
+
+export const wsServer = createServer(app);
+export const io = new Server(wsServer, {
+  cors: {
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "http://127.0.0.1:5173", // Add alternative localhost address
+    ],
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Origin",
+      "X-Requested-With",
+      "Accept",
+    ],
+    credentials: true,
+    exposedHeaders: ["Authorization"], // Important for Clerk
+  },
+});
 
 app.post("/auth/register", async (req, res) => {
   const { name, email, role, password } = req.body;
@@ -145,6 +185,77 @@ app.post("/auth/logout", JWTmiddleware.validateToken, (req, res) => {
   }
 });
 
-app.listen(3000, () => {
+io.use(async (socket, next) => {
+  const cookies = socket.handshake.headers.cookie?.split("; ") || [];
+  const token = cookies?.find((cookie) => cookie.startsWith("token="))?.split(
+    "=",
+  )[1];
+
+  if (!token) {
+    return next(new Error("Authentication error"));
+  }
+
+  await authenticationService.verifyJWT(token)
+    .then((user) => {
+      if (!user) {
+        return next(new Error("Authentication error"));
+      }
+      //@ts-ignore just to avoid the error
+      socket.user = user;
+      next();
+    })
+    .catch(() => {
+      return next(new Error("Authentication error"));
+    });
+});
+
+io.on("connection", (socket) => {
+  socket.on("joinChat", async (professorID: number) => {
+    socket.join(`chat_${professorID}`);
+
+    // Try to retrieve previous messages from MongoDB and send to the user
+    const previousMessages = await messageCollection.find({ room_id: `chat_${professorID}` }).toArray()
+
+    socket.emit("joinedChat", `chat_${professorID}`);
+
+    if (previousMessages.length > 0) {
+      socket.emit("previousMessages", previousMessages);
+    }
+  });
+
+  socket.on("sendMessage", async (data: { professorID: number; message: string }) => {
+    const { professorID, message } = data;
+    console.log(data);
+
+    const sender = socket.user;
+    if (!sender) {
+      socket.emit("error", "User not authenticated");
+      return;
+    }
+
+    const messageDocument: IMessage = {
+      room_id: `chat_${professorID}`,
+      sender_id: sender.id,
+      sender_name: sender.name,
+      sender_role: sender.role,
+      message,
+      timestamp: new Date(),
+    }
+
+    // Validate on Zod schema if needed
+    if (!messageSchema.safeParse(messageDocument).success) {
+      socket.emit("error", "Invalid message format");
+      return;
+    }
+
+    // Save to MongoDB with chat_{professorID} as the chat ID
+    await messageCollection.insertOne(messageDocument);
+
+    // Emit to the professor's room
+    io.to(`chat_${professorID}`).emit("newMessage", messageDocument);
+  });
+});
+
+wsServer.listen(3000, () => {
   console.log("Server is running on port 3000");
 });
