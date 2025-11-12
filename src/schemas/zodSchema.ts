@@ -39,3 +39,12 @@ export const gradeSchema = z.object({
   createdAt: z.date().describe("Data de criação da nota"),
   updatedAt: z.date().describe("Data de atualização da nota"),
 });
+
+export const messageSchema = z.object({
+  room_id: z.string().describe("ID da sala de chat"),
+  sender_id: z.number().describe("ID do remetente"),
+  sender_role: z.enum(["STUDENT", "PROFESSOR"]).describe("Papel do remetente"),
+  sender_name: z.string().describe("Nome do remetente"),
+  message: z.string().describe("Conteúdo da mensagem"),
+  timestamp: z.date().describe("Timestamp da mensagem"),
+});

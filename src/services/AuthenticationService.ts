@@ -75,7 +75,17 @@ export class AuthenticationService {
   async verifyJWT(token: string): Promise<JWTPayload | null> {
     try {
       const { payload } = await jwtVerify(token, this.secretKey);
-      return payload;
+      const user = await this.getUserById(payload.id as number);
+
+      if (!user) {
+        return null;
+      }
+
+      return {
+        ...payload,
+        role: user.role,
+        name: user.name,
+      };
     } catch (error: unknown) {
       return error instanceof JWSInvalid ? null : Promise.reject(error);
     }
