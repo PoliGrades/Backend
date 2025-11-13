@@ -13,6 +13,7 @@ import { userSchema } from "./schemas/zodSchema.ts";
 import { AuthenticationService } from "./services/AuthenticationService.ts";
 import { ChatService } from "./services/ChatService.ts";
 import { ClassService } from "./services/ClassService.ts";
+import { SubjectService } from "./services/SubjectService.ts";
 import { TaskService } from "./services/TaskService.ts";
 import { WarningService } from "./services/WarningService.ts";
 
@@ -57,6 +58,7 @@ const JWTmiddleware = new ValidateJWT(authenticationService);
 
 const classService = new ClassService(db);
 const taskService = new TaskService(db, classService);
+const subjectService = new SubjectService(db);
 
 const chatService = new ChatService();
 const warningService = new WarningService();
@@ -201,6 +203,66 @@ app.post("/auth/logout", JWTmiddleware.validateToken, (req, res) => {
       throw error;
     }
 
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/subject", JWTmiddleware.validateToken, async (req, res) => {
+  const { name, description, color, icon } = req.body;
+
+  try {
+    const newSubjectId = await subjectService.createSubject({
+      name,
+      description,
+      color,
+      icon,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const newSubject = await subjectService.getSubjectById(newSubjectId);
+
+    res.status(201).json({
+      name: newSubject?.name,
+      description: newSubject?.description,
+      color: newSubject?.color,
+      icon: newSubject?.icon,
+      id: newSubject?.id,
+    });
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
+
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/subjects", JWTmiddleware.validateToken, async (req, res) => {
+  try {
+    const subjects = await subjectService.getAllSubjects();
+    res.status(200).json(subjects);
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/subject/:id", JWTmiddleware.validateToken, async (req, res) => {
+  const subjectId = Number(req.params.id);
+  try {
+    const subject = await subjectService.getSubjectById(subjectId);
+    if (!subject) {
+      res.status(404).json({ error: "Subject not found" });
+      return;
+    }
+    res.status(200).json(subject);
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
     res.status(500).json({ error: error.message });
   }
 });

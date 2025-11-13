@@ -13,7 +13,7 @@ export class SubjectService {
 
     @validateData(subjectSchema)
     async createSubject(
-        subjectData: Partial<{ name: string; description: string; color: string; icon: string }>,
+        subjectData: Partial<ISubject>,
     ): Promise<number> {
         subjectData = {
             ...subjectData,
