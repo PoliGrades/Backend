@@ -7,11 +7,14 @@ import z from "zod";
 import { MockDatabase } from "./database/MockDatabase.ts";
 import { PostgresDatabase } from "./database/PostgresDatabase.ts";
 import { IDatabase } from "./interfaces/IDatabase.ts";
+import { IWarning } from "./interfaces/IWarning.ts";
 import { ValidateJWT } from "./middlewares/ValidateJWT.ts";
 import { userSchema } from "./schemas/zodSchema.ts";
 import { AuthenticationService } from "./services/AuthenticationService.ts";
 import { ChatService } from "./services/ChatService.ts";
 import { ClassService } from "./services/ClassService.ts";
+import { TaskService } from "./services/TaskService.ts";
+import { WarningService } from "./services/WarningService.ts";
 
 const app = express();
 
@@ -53,7 +56,10 @@ const authenticationService = new AuthenticationService(db);
 const JWTmiddleware = new ValidateJWT(authenticationService);
 
 const classService = new ClassService(db);
+const taskService = new TaskService(db, classService);
+
 const chatService = new ChatService();
+const warningService = new WarningService();
 
 app.use(cookieParser());
 app.use(express.json());
@@ -195,6 +201,49 @@ app.post("/auth/logout", JWTmiddleware.validateToken, (req, res) => {
       throw error;
     }
 
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/warning", JWTmiddleware.validateToken, async (req, res) => {
+  const { message, classId } = req.body;
+
+  try {
+    const classData = await classService.getClassById(classId);
+    if (!classData) {
+      res.status(404).json({ error: "Class not found" });
+      return;
+    }
+
+    const warning: IWarning = {
+      userID: req.user!.id,
+      classID: classId,
+      className: classData.name,
+      userName: req.user!.name,
+      message: message,
+      timestamp: new Date(),
+    };
+
+    await warningService.addWarning(warning);
+
+    res.status(200).json(warning);
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
+
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/warnings", JWTmiddleware.validateToken, async (req, res) => {
+  try {
+    const warnings = await warningService.getWarnings();
+    res.status(200).json(warnings);
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
     res.status(500).json({ error: error.message });
   }
 });
