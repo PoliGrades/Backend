@@ -3,17 +3,25 @@ import { beforeAll, describe, it } from "jsr:@std/testing/bdd";
 import { MockDatabase } from "../src/database/MockDatabase.ts";
 import { IClass } from "../src/interfaces/IClass.ts";
 import { generateMockClass } from "../src/mocks/Class.ts";
+import { generateMockSubject } from "../src/mocks/Subject.ts";
 import { generateMockPassword, generateMockUser } from "../src/mocks/User.ts";
 import { AuthenticationService } from "../src/services/AuthenticationService.ts";
 import { ClassService } from "../src/services/ClassService.ts";
+import { SubjectService } from "../src/services/SubjectService.ts";
 
 describe("Class service", () => {
   let user: number;
   let db: MockDatabase;
 
+  let subjectId: number;
+
   beforeAll(async () => {
     db = new MockDatabase();
     const authenticationService = new AuthenticationService(db);
+    const subjectService = new SubjectService(db);
+
+    // Create a subject for the classes
+    subjectId = await subjectService.createSubject(generateMockSubject());
 
     const newUser = generateMockUser("PROFESSOR");
     const userPassword = generateMockPassword();
@@ -26,7 +34,7 @@ describe("Class service", () => {
 
     const classData = generateMockClass();
 
-    const newClass = await classService.createClass(classData, user);
+    const newClass = await classService.createClass(classData, user, subjectId);
 
     expect(newClass).toBeDefined();
   });
@@ -45,7 +53,7 @@ describe("Class service", () => {
       studentPassword,
     );
 
-    await expect(classService.createClass(classData, student_user)).rejects
+    await expect(classService.createClass(classData, student_user, subjectId)).rejects
       .toThrow(
         "Only professors can create classes",
       );
@@ -64,7 +72,7 @@ describe("Class service", () => {
     const classService = new ClassService(db);
 
     const classData = generateMockClass();
-    const newClass = await classService.createClass(classData, user);
+    const newClass = await classService.createClass(classData, user, subjectId);
 
     const retrievedClass = await classService.getClassById(newClass);
 
@@ -76,7 +84,7 @@ describe("Class service", () => {
     const classService = new ClassService(db);
 
     const classData = generateMockClass();
-    await classService.createClass(classData, user);
+    await classService.createClass(classData, user, subjectId);
 
     const classes = await classService.getClassesByOwnerId(user);
 
@@ -90,7 +98,7 @@ describe("Class service", () => {
     const classService = new ClassService(db);
 
     const classData = generateMockClass();
-    const newClass = await classService.createClass(classData, user);
+    const newClass = await classService.createClass(classData, user, subjectId);
 
     const studentUser = generateMockUser("STUDENT");
     const studentPassword = generateMockPassword();
@@ -111,7 +119,7 @@ describe("Class service", () => {
     const classService = new ClassService(db);
 
     const classData = generateMockClass(user);
-    const newClass = await classService.createClass(classData, user);
+    const newClass = await classService.createClass(classData, user, subjectId);
 
     const updatedClassData: Partial<IClass> = {
       name: "Updated Class Name",
@@ -128,7 +136,7 @@ describe("Class service", () => {
     const classService = new ClassService(db);
 
     const classData = generateMockClass(user);
-    const newClass = await classService.createClass(classData, user);
+    const newClass = await classService.createClass(classData, user, subjectId);
 
     await classService.deleteClass(newClass, user);
 
@@ -140,7 +148,7 @@ describe("Class service", () => {
     const classService = new ClassService(db);
 
     const classData = generateMockClass();
-    const newClass = await classService.createClass(classData, user);
+    const newClass = await classService.createClass(classData, user, subjectId);
 
     const studentUser = generateMockUser("STUDENT");
     const studentPassword = generateMockPassword();
@@ -169,7 +177,7 @@ describe("Class service", () => {
     );
 
     const classData = generateMockClass();
-    const newClass = await classService.createClass(classData, user);
+    const newClass = await classService.createClass(classData, user, subjectId);
 
     const enrollment = await classService.enrollStudent(
       newClass,
@@ -202,7 +210,7 @@ describe("Class service", () => {
     );
 
     const classData = generateMockClass();
-    const newClass = await classService.createClass(classData, user);
+    const newClass = await classService.createClass(classData, user, subjectId);
 
     await expect(
       classService.enrollStudent(newClass, student_user2, student_user1),
@@ -221,7 +229,7 @@ describe("Class service", () => {
     );
 
     const classData = generateMockClass();
-    const newClass = await classService.createClass(classData, user);
+    const newClass = await classService.createClass(classData, user, subjectId);
 
     const enrollment = await classService.enrollStudent(
       newClass,
@@ -253,7 +261,7 @@ describe("Class service", () => {
     );
 
     const classData = generateMockClass();
-    const newClass = await classService.createClass(classData, user);
+    const newClass = await classService.createClass(classData, user, subjectId);
 
     const enrollment = await classService.enrollStudent(
       newClass,

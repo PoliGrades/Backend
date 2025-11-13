@@ -2,11 +2,13 @@ import { expect } from "jsr:@std/expect/expect";
 import { beforeAll, describe, it } from "jsr:@std/testing/bdd";
 import { MockDatabase } from "../src/database/MockDatabase.ts";
 import { generateMockClass } from "../src/mocks/Class.ts";
+import { generateMockSubject } from "../src/mocks/Subject.ts";
 import { generateMockTask } from "../src/mocks/Task.ts";
 import { generateMockPassword, generateMockUser } from "../src/mocks/User.ts";
 import { AuthenticationService } from "../src/services/AuthenticationService.ts";
 import { ClassService } from "../src/services/ClassService.ts";
 import { GradeService } from "../src/services/GradeService.ts";
+import { SubjectService } from "../src/services/SubjectService.ts";
 import { TaskService } from "../src/services/TaskService.ts";
 
 describe("Task service", () => {
@@ -24,6 +26,7 @@ describe("Task service", () => {
   beforeAll(async () => {
     db = new MockDatabase();
     const authenticationService = new AuthenticationService(db);
+    const subjectService = new SubjectService(db);
 
     const newUser = generateMockUser("PROFESSOR");
     const userPassword = generateMockPassword();
@@ -33,11 +36,13 @@ describe("Task service", () => {
       userPassword,
     );
 
+    const subjectId = await subjectService.createSubject(generateMockSubject());
+
     const classData = generateMockClass(professorId);
 
     classService = new ClassService(db);
 
-    const classId = await classService.createClass(classData, professorId);
+    const classId = await classService.createClass(classData, professorId, subjectId);
 
     taskService = new TaskService(db, classService);
     gradeService = new GradeService(db, classService, taskService);

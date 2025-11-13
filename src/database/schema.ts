@@ -34,11 +34,22 @@ export const password = pgTable("password", {
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });
 
+export const subject = pgTable("subject", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  color: text("color").notNull(),
+  icon: text("icon").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
+});
+
 export const classTable = pgTable("class", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  subject: text("subject").notNull(),
+  subjectId: serial("subject_id").references(() => subject.id),
   ownerId: serial("owner_id").references(() => user.id),
+  ownerName: text("owner_name").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });

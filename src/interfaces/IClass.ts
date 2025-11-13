@@ -6,8 +6,9 @@
 export interface IClass {
   id: number;
   name: string;
-  subject: string;
+  subjectId: number;
   ownerId: number;
+  ownerName: string;
   createdAt: Date;
   updatedAt: Date;
 }
