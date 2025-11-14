@@ -207,6 +207,24 @@ app.post("/auth/logout", JWTmiddleware.validateToken, (req, res) => {
   }
 });
 
+app.get("/professors", JWTmiddleware.validateToken, async (req, res) => {
+  try {
+    const professors = await authenticationService.getUsersByRole("PROFESSOR");
+    res.status(200).json(professors.map((professor) => ({
+      id: professor.id,
+      name: professor.name,
+      email: professor.email,
+      role: professor.role,
+    }))
+    );
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post("/subject", JWTmiddleware.validateToken, async (req, res) => {
   const { name, description, color, icon } = req.body;
 
@@ -241,7 +259,13 @@ app.post("/subject", JWTmiddleware.validateToken, async (req, res) => {
 app.get("/subjects", JWTmiddleware.validateToken, async (req, res) => {
   try {
     const subjects = await subjectService.getAllSubjects();
-    res.status(200).json(subjects);
+    res.status(200).json(subjects.map((subject) => ({
+      id: subject.id,
+      name: subject.name,
+      description: subject.description,
+      color: subject.color,
+      icon: subject.icon,
+    })));
   } catch (error: unknown) {
     if (!(error instanceof Error)) {
       throw error;
@@ -263,6 +287,32 @@ app.get("/subject/:id", JWTmiddleware.validateToken, async (req, res) => {
     if (!(error instanceof Error)) {
       throw error;
     }
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/class", JWTmiddleware.validateToken, async (req, res) => {
+  const { name, subjectId } = req.body;
+  try {
+    const newClassId = await classService.createClass({
+      name,
+      subjectId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }, req.user!.id, subjectId);
+
+    const newClass = await classService.getClassById(newClassId);
+
+    res.status(201).json({
+      name: newClass?.name,
+      subjectId: newClass?.subjectId,
+      id: newClass?.id,
+    });
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
+
     res.status(500).json({ error: error.message });
   }
 });

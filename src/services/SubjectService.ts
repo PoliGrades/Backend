@@ -19,6 +19,17 @@ export class SubjectService {
             ...subjectData,
         };
 
+        // Check if a subject with the same name already exists
+        const existingSubjects = await this.db.selectByField(
+            subjectTable,
+            "name",
+            subjectData.name!,
+        );
+
+        if (existingSubjects.length > 0) {
+            throw new Error("A subject with this name already exists");
+        }
+
         const newSubject = await this.db.insert(subjectTable, {
             name: subjectData.name,
             description: subjectData.description,

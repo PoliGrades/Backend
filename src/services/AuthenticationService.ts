@@ -122,6 +122,10 @@ export class AuthenticationService {
     return user[0];
   }
 
+  async getUsersByRole(role: "PROFESSOR" | "STUDENT"): Promise<IUser[]> {
+    return await this.db.selectByField(userTable, "role", role);
+  }
+
   @validateData(userSchema)
   async updateUser(user: IUser, id: number): Promise<number> {
     const existingUser = await this.db.select(userTable, id);

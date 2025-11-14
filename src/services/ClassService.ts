@@ -37,6 +37,17 @@ export class ClassService {
       throw new Error("Only professors can create classes");
     }
 
+    // Check if a class with the same name already exists for this professor
+    const existingClasses = await this.db.selectByField(
+      classTable,
+      "name",
+      classData.name!,
+    );
+
+    if (existingClasses.length > 0) {
+      throw new Error("A class with this name already exists");
+    }
+
     const newClass = await this.db.insert(classTable, {
       name: classData.name,
       subjectId: subjectId,
