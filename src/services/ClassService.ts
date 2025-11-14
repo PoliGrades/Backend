@@ -20,6 +20,7 @@ export class ClassService {
   async createClass(
     classData: Partial<IClass>,
     userID: number,
+    subjectId: number,
   ): Promise<number> {
     classData = {
       ...classData,
@@ -36,10 +37,22 @@ export class ClassService {
       throw new Error("Only professors can create classes");
     }
 
+    // Check if a class with the same name already exists for this professor
+    const existingClasses = await this.db.selectByField(
+      classTable,
+      "name",
+      classData.name!,
+    );
+
+    if (existingClasses.length > 0) {
+      throw new Error("A class with this name already exists");
+    }
+
     const newClass = await this.db.insert(classTable, {
       name: classData.name,
-      subject: classData.subject,
+      subjectId: subjectId,
       ownerId: userID,
+      ownerName: user[0].name,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as IClass);

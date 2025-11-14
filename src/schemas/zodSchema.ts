@@ -13,10 +13,20 @@ export const userSchema = z.object({
   updatedAt: z.date().describe("Data de atualização do usuário"),
 });
 
+export const subjectSchema = z.object({
+  id: z.number().describe("ID da disciplina").optional(),
+  name: z.string().describe("Nome da disciplina"),
+  description: z.string().describe("Descrição da disciplina"),
+  color: z.string().describe("Cor da disciplina"),
+  icon: z.string().describe("Ícone da disciplina"),
+  createdAt: z.date().describe("Data de criação da disciplina"),
+  updatedAt: z.date().describe("Data de atualização da disciplina"),
+});
+
 export const classSchema = z.object({
   id: z.number().describe("ID da turma").optional(),
   name: z.string().describe("Nome da turma"),
-  subject: z.string().describe("Disciplina da turma"),
+  subjectId: z.number().describe("ID da disciplina"),
   createdAt: z.date().describe("Data de criação da turma"),
   updatedAt: z.date().describe("Data de atualização da turma"),
 });
