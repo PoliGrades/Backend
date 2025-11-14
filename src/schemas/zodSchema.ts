@@ -18,7 +18,7 @@ export const subjectSchema = z.object({
   name: z.string().describe("Nome da disciplina"),
   description: z.string().describe("Descrição da disciplina"),
   color: z.string().describe("Cor da disciplina"),
-  icon: z.string().describe("Ícone da disciplina"),
+  accentColor: z.string().describe("Cor de destaque da disciplina"),
   createdAt: z.date().describe("Data de criação da disciplina"),
   updatedAt: z.date().describe("Data de atualização da disciplina"),
 });

@@ -3,7 +3,7 @@ export interface ISubject {
     name: string;
     description: string;
     color: string;
-    icon: string;
+    accentColor: string;
     createdAt: Date;
     updatedAt: Date;
 }

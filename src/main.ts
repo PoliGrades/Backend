@@ -226,14 +226,14 @@ app.get("/professors", JWTmiddleware.validateToken, async (req, res) => {
 });
 
 app.post("/subject", JWTmiddleware.validateToken, async (req, res) => {
-  const { name, description, color, icon } = req.body;
+  const { name, description, color, accentColor } = req.body;
 
   try {
     const newSubjectId = await subjectService.createSubject({
       name,
       description,
       color,
-      icon,
+      accentColor,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -244,7 +244,7 @@ app.post("/subject", JWTmiddleware.validateToken, async (req, res) => {
       name: newSubject?.name,
       description: newSubject?.description,
       color: newSubject?.color,
-      icon: newSubject?.icon,
+      accentColor: newSubject?.accentColor,
       id: newSubject?.id,
     });
   } catch (error: unknown) {
@@ -264,7 +264,7 @@ app.get("/subjects", JWTmiddleware.validateToken, async (req, res) => {
       name: subject.name,
       description: subject.description,
       color: subject.color,
-      icon: subject.icon,
+      accentColor: subject.accentColor,
     })));
   } catch (error: unknown) {
     if (!(error instanceof Error)) {
@@ -318,7 +318,7 @@ app.post("/class", JWTmiddleware.validateToken, async (req, res) => {
 });
 
 app.post("/warning", JWTmiddleware.validateToken, async (req, res) => {
-  const { message, classId } = req.body;
+  const { title, description, classId } = req.body;
 
   try {
     const classData = await classService.getClassById(classId);
@@ -332,7 +332,8 @@ app.post("/warning", JWTmiddleware.validateToken, async (req, res) => {
       classID: classId,
       className: classData.name,
       userName: req.user!.name,
-      message: message,
+      title: title,
+      description: description,
       timestamp: new Date(),
     };
 
