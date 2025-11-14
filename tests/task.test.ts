@@ -2,10 +2,12 @@ import { expect } from "jsr:@std/expect/expect";
 import { beforeAll, describe, it } from "jsr:@std/testing/bdd";
 import { MockDatabase } from "../src/database/MockDatabase.ts";
 import { generateMockClass } from "../src/mocks/Class.ts";
+import { generateMockSubject } from "../src/mocks/Subject.ts";
 import { generateMockTask } from "../src/mocks/Task.ts";
 import { generateMockPassword, generateMockUser } from "../src/mocks/User.ts";
 import { AuthenticationService } from "../src/services/AuthenticationService.ts";
 import { ClassService } from "../src/services/ClassService.ts";
+import { SubjectService } from "../src/services/SubjectService.ts";
 import { TaskService } from "../src/services/TaskService.ts";
 
 describe("Task service", () => {
@@ -18,19 +20,23 @@ describe("Task service", () => {
   beforeAll(async () => {
     db = new MockDatabase();
     const authenticationService = new AuthenticationService(db);
+    const subjectService = new SubjectService(db);
 
     const newUser = generateMockUser("PROFESSOR");
     const userPassword = generateMockPassword();
 
     userId = await authenticationService.registerUser(newUser, userPassword);
 
+    const subjectId = await subjectService.createSubject(generateMockSubject());
+
     const classData = generateMockClass(userId);
 
     classService = new ClassService(db);
-    classId = await classService.createClass(classData, userId);
+    classId = await classService.createClass(classData, userId, subjectId);
     invisibleClassId = await classService.createClass(
       generateMockClass(userId),
       userId,
+      subjectId
     ); // Create a second class to test task visibility
   });
 
