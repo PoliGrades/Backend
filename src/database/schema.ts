@@ -39,7 +39,7 @@ export const subject = pgTable("subject", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   color: text("color").notNull(),
-  icon: text("icon").notNull(),
+  accentColor: text("accent_color").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });

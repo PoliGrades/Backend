@@ -3,6 +3,7 @@ export interface IWarning {
     classID: string;
     userName: string;
     className: string;
-    message: string;
+    title: string;
+    description: string;
     timestamp: Date;
 }

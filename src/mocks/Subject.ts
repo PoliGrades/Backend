@@ -11,7 +11,7 @@ export function generateMockSubject(): ISubject {
     name: faker.lorem.word(),
     description: faker.lorem.sentence(),
     color: faker.color.rgb({ prefix: "#" }),
-    icon: faker.lorem.word(),
+    accentColor: faker.color.rgb({ prefix: "#" }),
     createdAt: faker.date.past(),
     updatedAt: faker.date.recent(),
   }

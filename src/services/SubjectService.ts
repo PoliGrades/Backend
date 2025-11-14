@@ -34,7 +34,7 @@ export class SubjectService {
             name: subjectData.name,
             description: subjectData.description,
             color: subjectData.color,
-            icon: subjectData.icon,
+            accentColor: subjectData.accentColor,
             createdAt: new Date(),
             updatedAt: new Date(),
         } as ISubject);
