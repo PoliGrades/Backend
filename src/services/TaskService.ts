@@ -1,16 +1,20 @@
 import { task as taskTable } from "../database/schema.ts";
 import { IDatabase } from "../interfaces/IDatabase.ts";
 import { ITask } from "../interfaces/ITask.ts";
+import { ITaskAttachment } from "../interfaces/ITaskAttachment.ts";
 import { taskSchema } from "../schemas/zodSchema.ts";
 import { ClassService } from "./ClassService.ts";
 import { validateData } from "./decorators.ts";
+import { TaskAttachmentService } from "./TaskAttachmentService.ts";
 
 export class TaskService {
   private db: IDatabase;
   private classService: ClassService;
+  private taskAttachmentService?: TaskAttachmentService;
 
-  constructor(db: IDatabase, classService?: ClassService) {
+  constructor(db: IDatabase, classService?: ClassService, taskAttachmentService?: TaskAttachmentService) {
     this.db = db;
+    this.taskAttachmentService = taskAttachmentService
     this.classService = classService || new ClassService(db);
   }
 
@@ -19,7 +23,8 @@ export class TaskService {
     taskData: Partial<ITask>,
     classId: number,
     userId: number,
-  ): Promise<ITask> {
+    files?: Express.Multer.File[],
+  ): Promise<ITask & { attachments: ITaskAttachment[] }> {
     // Verify if the user has permission to create a task in the specified class
     const classInfo = await this.classService.getClassById(classId);
 
@@ -36,12 +41,36 @@ export class TaskService {
       updatedAt: new Date(),
     } as ITask);
 
+    if (files && files.length > 0) {
+      for (const file of files) {
+        await this.taskAttachmentService!.addTaskAttachment({
+          taskId: newTaskId.id,
+          fileName: file.originalname,
+          filePath: file.path,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as ITaskAttachment);
+      }
+    }
+
     const createdTask = await this.db.select(taskTable, newTaskId.id);
     if (!createdTask) {
       throw new Error("There was an error creating your task");
     }
 
-    return createdTask;
+    if (!files || files.length === 0) {
+      return {
+        ...createdTask,
+        attachments: [],
+      };
+    }
+
+    const attachments = await this.taskAttachmentService!.getTaskAttachmentsByTaskId(newTaskId.id);
+
+    return {
+      ...createdTask,
+      attachments: attachments,
+    };
   }
 
   async getTasksByClassId(
@@ -63,7 +92,7 @@ export class TaskService {
     return tasks;
   }
 
-  async getTaskById(taskId: number, userId: number): Promise<ITask | null> {
+  async getTaskById(taskId: number, userId: number): Promise<ITask & { attachments: ITaskAttachment[] } | null> {
     const task = await this.db.select(taskTable, taskId);
 
     if (!task) {
@@ -80,7 +109,49 @@ export class TaskService {
       throw new Error("User does not have permission to view this task.");
     }
 
-    return task;
+    let attachments: ITaskAttachment[] = [];
+
+    if (task.hasAttachment && this.taskAttachmentService) {
+      attachments = await this.taskAttachmentService.getTaskAttachmentsByTaskId(task.id);
+    }
+    
+    return {
+      ...task,
+      attachments: attachments,
+    };
+  }
+
+  async getTasksBySubjectId(subjectId: number): Promise<ITask[]> {
+    const classes = await this.classService.getClassesBySubjectId(
+      subjectId,
+    );
+
+    const tasksPromises = classes.map((cls) =>
+      this.db.selectByField(taskTable, "classId", cls.id)
+    );
+    const tasks = await Promise.all(tasksPromises);
+    return tasks.flat();
+  }
+
+  async getAllTasksForUser(userId: number): Promise<ITask[]> {
+  //   // Find all classes the user is enrolled in or owns
+  //   const ownedClasses = await this.classService.getClassesByOwnerId(userId);
+  //   const enrolledClassesPromises = ownedClasses.map((cls) =>
+  //     this.classService.
+  //   );
+  //   const enrolledClasses = await Promise.all(enrolledClassesPromises);
+
+  //   // Combine owned and enrolled classes
+  //   const allClasses = [...ownedClasses, ...enrolledClasses.flat()];
+
+  //   // Find all tasks for the combined classes
+  //   const tasksPromises = allClasses.map((cls) =>
+  //     this.getTasksByClassId(cls.id, userId)
+  //   );
+  //   const tasks = await Promise.all(tasksPromises);
+
+  //   return tasks.flat();
+    return [];
   }
 
   async updateTask(
