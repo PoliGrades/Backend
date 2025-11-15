@@ -11,6 +11,7 @@ export function generateMockTask(classId?: number): ITask {
     classId: classId || faker.number.int({ min: 1, max: 1000 }),
     title: faker.lorem.words(5),
     description: faker.lorem.sentence(),
+    hasAttachment: faker.datatype.boolean(),
     dueDate: faker.date.future(),
     createdAt: new Date(),
     updatedAt: new Date(),
