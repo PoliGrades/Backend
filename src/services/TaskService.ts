@@ -12,9 +12,13 @@ export class TaskService {
   private classService: ClassService;
   private taskAttachmentService?: TaskAttachmentService;
 
-  constructor(db: IDatabase, classService?: ClassService, taskAttachmentService?: TaskAttachmentService) {
+  constructor(
+    db: IDatabase,
+    classService?: ClassService,
+    taskAttachmentService?: TaskAttachmentService,
+  ) {
     this.db = db;
-    this.taskAttachmentService = taskAttachmentService
+    this.taskAttachmentService = taskAttachmentService;
     this.classService = classService || new ClassService(db);
   }
 
@@ -65,7 +69,8 @@ export class TaskService {
       };
     }
 
-    const attachments = await this.taskAttachmentService!.getTaskAttachmentsByTaskId(newTaskId.id);
+    const attachments = await this.taskAttachmentService!
+      .getTaskAttachmentsByTaskId(newTaskId.id);
 
     return {
       ...createdTask,
@@ -92,7 +97,10 @@ export class TaskService {
     return tasks;
   }
 
-  async getTaskById(taskId: number, userId: number): Promise<ITask & { attachments: ITaskAttachment[] } | null> {
+  async getTaskById(
+    taskId: number,
+    userId: number,
+  ): Promise<ITask & { attachments: ITaskAttachment[] } | null> {
     const task = await this.db.select(taskTable, taskId);
 
     if (!task) {
@@ -112,9 +120,11 @@ export class TaskService {
     let attachments: ITaskAttachment[] = [];
 
     if (task.hasAttachment && this.taskAttachmentService) {
-      attachments = await this.taskAttachmentService.getTaskAttachmentsByTaskId(task.id);
+      attachments = await this.taskAttachmentService.getTaskAttachmentsByTaskId(
+        task.id,
+      );
     }
-    
+
     return {
       ...task,
       attachments: attachments,
@@ -134,24 +144,19 @@ export class TaskService {
   }
 
   async getAllTasksForUser(userId: number): Promise<ITask[]> {
-  //   // Find all classes the user is enrolled in or owns
-  //   const ownedClasses = await this.classService.getClassesByOwnerId(userId);
-  //   const enrolledClassesPromises = ownedClasses.map((cls) =>
-  //     this.classService.
-  //   );
-  //   const enrolledClasses = await Promise.all(enrolledClassesPromises);
+    // Find all classes the user is enrolled in
+    const enrolledClasses = await this.classService.getEnrollmentsByStudentId(
+      userId,
+    );
 
-  //   // Combine owned and enrolled classes
-  //   const allClasses = [...ownedClasses, ...enrolledClasses.flat()];
+    const tasks: ITask[] = [];
 
-  //   // Find all tasks for the combined classes
-  //   const tasksPromises = allClasses.map((cls) =>
-  //     this.getTasksByClassId(cls.id, userId)
-  //   );
-  //   const tasks = await Promise.all(tasksPromises);
+    for (const cls of enrolledClasses) {
+      const classTasks = await this.getTasksByClassId(cls.id, userId);
+      tasks.push(...classTasks);
+    }
 
-  //   return tasks.flat();
-    return [];
+    return tasks;
   }
 
   async updateTask(

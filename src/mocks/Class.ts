@@ -1,7 +1,10 @@
 import { Faker, pt_BR } from "@faker-js/faker";
 import { IClass } from "../interfaces/IClass.ts";
 
-export function generateMockClass(ownerId?: number, subjectId?: number): IClass {
+export function generateMockClass(
+  ownerId?: number,
+  subjectId?: number,
+): IClass {
   const faker = new Faker({
     locale: pt_BR,
   });

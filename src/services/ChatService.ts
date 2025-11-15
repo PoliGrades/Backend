@@ -40,7 +40,7 @@ export class ChatService {
     if (!result.acknowledged) {
       throw new Error("Failed to save message");
     }
-    
+
     return messageDocument;
   }
 }

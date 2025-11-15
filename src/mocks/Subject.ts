@@ -14,5 +14,5 @@ export function generateMockSubject(): ISubject {
     accentColor: faker.color.rgb({ prefix: "#" }),
     createdAt: faker.date.past(),
     updatedAt: faker.date.recent(),
-  }
+  };
 }

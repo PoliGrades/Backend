@@ -24,6 +24,10 @@ export class TaskAttachmentService {
     return await this.collection.find({ taskId }).toArray();
   }
 
+  async getAttachmentByName(name: string): Promise<ITaskAttachment | null> {
+    return await this.collection.findOne({ fileName: name });
+  }
+
   async getTaskAttachments(): Promise<ITaskAttachment[]> {
     return await this.collection.find({}).toArray();
   }

@@ -2,9 +2,9 @@ import bcrypt from "bcrypt";
 import { JWTPayload, jwtVerify, SignJWT } from "jose";
 import { JWSInvalid } from "jose/errors";
 import {
-  password as passwordTable,
-  salt as saltTable,
-  user as userTable,
+    password as passwordTable,
+    salt as saltTable,
+    user as userTable,
 } from "../database/schema.ts";
 import { IDatabase } from "../interfaces/IDatabase.ts";
 import { IUser } from "../interfaces/IUser.ts";
@@ -15,10 +15,11 @@ export class AuthenticationService {
   private db: IDatabase;
   private secretKey: Uint8Array;
 
-  constructor(db: IDatabase) {
+  constructor(db: IDatabase, secretKey?: string) {
     this.db = db;
 
-    this.secretKey = new TextEncoder().encode("poli_grades");
+    const key = secretKey || Deno.env.get("SECRET_KEY") || "poli_grades";
+    this.secretKey = new TextEncoder().encode(key);
   }
 
   @validateData(userSchema)
