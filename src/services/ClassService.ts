@@ -76,6 +76,12 @@ export class ClassService {
     return await this.db.selectByField(classTable, "ownerId", ownerId);
   }
 
+  async getClassesBySubjectId(
+    subjectId: number,
+  ): Promise<IClass[]> {
+    return await this.db.selectByField(classTable, "subjectId", subjectId);
+  }
+
   async updateClass(
     id: number,
     classData: Partial<IClass>,

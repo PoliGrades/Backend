@@ -1,8 +1,8 @@
 export interface IWarning {
     userID: number;
-    classID: string;
+    subjectId: string;
     userName: string;
-    className: string;
+    subjectName: string;
     title: string;
     description: string;
     timestamp: Date;

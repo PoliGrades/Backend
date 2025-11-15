@@ -1,4 +1,5 @@
 import {
+  boolean,
   decimal,
   pgEnum,
   pgTable,
@@ -67,6 +68,7 @@ export const task = pgTable("task", {
   classId: serial("class_id").references(() => classTable.id),
   title: text("title").notNull(),
   description: text("description").notNull(),
+  hasAttachment: boolean("has_attachment").notNull().default(false),
   dueDate: timestamp("due_date").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),

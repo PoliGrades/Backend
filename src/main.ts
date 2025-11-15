@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import multer from "multer";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import z from "zod";
@@ -14,6 +15,7 @@ import { AuthenticationService } from "./services/AuthenticationService.ts";
 import { ChatService } from "./services/ChatService.ts";
 import { ClassService } from "./services/ClassService.ts";
 import { SubjectService } from "./services/SubjectService.ts";
+import { TaskAttachmentService } from "./services/TaskAttachmentService.ts";
 import { TaskService } from "./services/TaskService.ts";
 import { WarningService } from "./services/WarningService.ts";
 
@@ -31,6 +33,22 @@ declare module "socket.io" {
 
 // Instantiate the services
 const env = Deno.env.toObject();
+
+const uploadsDir = env.UPLOADS_DIR || "./uploads";
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+})
 
 let db: IDatabase;
 
@@ -56,12 +74,14 @@ switch (env.ENVIRONMENT) {
 const authenticationService = new AuthenticationService(db);
 const JWTmiddleware = new ValidateJWT(authenticationService);
 
-const classService = new ClassService(db);
-const taskService = new TaskService(db, classService);
-const subjectService = new SubjectService(db);
-
 const chatService = new ChatService();
 const warningService = new WarningService();
+const taskAttachmentService = new TaskAttachmentService();
+
+const classService = new ClassService(db);
+const taskService = new TaskService(db, classService, taskAttachmentService);
+const subjectService = new SubjectService(db);
+
 
 app.use(cookieParser());
 app.use(express.json());
@@ -207,6 +227,96 @@ app.post("/auth/logout", JWTmiddleware.validateToken, (req, res) => {
   }
 });
 
+app.post("/task", upload.array("attachments"), JWTmiddleware.validateToken, async (req, res) => {
+  console.log(req.body)
+  const { classId, title, description, dueDate } = JSON.parse(req.body.body);
+  console.log( classId, title, description, dueDate );
+
+  console.log(req.body.body)
+
+  const files = req.files as Express.Multer.File[];
+
+  try {
+    const newTask = await taskService.createTask({
+      classId: Number(classId),
+      title,
+      description,
+      hasAttachment: files.length > 0,
+      dueDate: new Date(dueDate),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }, classId, req.user!.id, files);
+
+    res.status(201).json({
+      classId: newTask?.classId,
+      title: newTask?.title,
+      description: newTask?.description,
+      dueDate: newTask?.dueDate,
+      id: newTask?.id,
+    });
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/tasks", JWTmiddleware.validateToken, async (req, res) => {
+  try {
+    const tasks = await taskService.getAllTasksForUser(req.user!.id);
+    res.status(200).json(tasks);
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/tasks/:subjectId", JWTmiddleware.validateToken, async (req, res) => {
+  const subjectId = Number(req.params.subjectId);
+  try {
+    const tasks = await taskService.getTasksBySubjectId(subjectId);
+    res.status(200).json(tasks.map((task) => ({
+      id: task.id,
+      classId: task.classId,
+      title: task.title,
+      description: task.description,
+      dueDate: task.dueDate,
+    })));
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/task/:id", JWTmiddleware.validateToken, async (req, res) => {
+  const taskId = Number(req.params.id);
+  try {
+    const task = await taskService.getTaskById(taskId, req.user!.id);
+    if (!task) {
+      res.status(404).json({ error: "Task not found" });
+      return;
+    }
+    res.status(200).json({
+      id: task.id,
+      classId: task.classId,
+      title: task.title,
+      description: task.description,
+      dueDate: task.dueDate,
+      attachments: task.attachments,
+    });
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get("/professors", JWTmiddleware.validateToken, async (req, res) => {
   try {
     const professors = await authenticationService.getUsersByRole("PROFESSOR");
@@ -317,20 +427,37 @@ app.post("/class", JWTmiddleware.validateToken, async (req, res) => {
   }
 });
 
+app.get("/classes/:subjectId", JWTmiddleware.validateToken, async (req, res) => {
+  const subjectId = Number(req.params.subjectId);
+  try {
+    const classes = await classService.getClassesBySubjectId(subjectId);
+    res.status(200).json(classes.map((classData) => ({
+      id: classData.id,
+      name: classData.name,
+      subjectId: classData.subjectId,
+    })));
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) {
+      throw error;
+    }
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post("/warning", JWTmiddleware.validateToken, async (req, res) => {
-  const { title, description, classId } = req.body;
+  const { title, description, subjectId } = req.body;
 
   try {
-    const classData = await classService.getClassById(classId);
-    if (!classData) {
-      res.status(404).json({ error: "Class not found" });
+    const subjectData = await subjectService.getSubjectById(subjectId);
+    if (!subjectData) {
+      res.status(404).json({ error: "Subject not found" });
       return;
     }
 
     const warning: IWarning = {
       userID: req.user!.id,
-      classID: classId,
-      className: classData.name,
+      subjectId: subjectId,
+      subjectName: subjectData.name,
       userName: req.user!.name,
       title: title,
       description: description,
@@ -339,7 +466,7 @@ app.post("/warning", JWTmiddleware.validateToken, async (req, res) => {
 
     await warningService.addWarning(warning);
 
-    res.status(200).json(warning);
+    res.status(201).json(warning);
   } catch (error: unknown) {
     if (!(error instanceof Error)) {
       throw error;
