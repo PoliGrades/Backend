@@ -18,7 +18,8 @@ describe("Class service", () => {
   beforeAll(async () => {
     db = new MockDatabase();
     const authenticationService = new AuthenticationService(db);
-    const subjectService = new SubjectService(db);
+    const classService = new ClassService(db);
+    const subjectService = new SubjectService(db, classService);
 
     // Create a subject for the classes
     subjectId = await subjectService.createSubject(generateMockSubject());
@@ -53,7 +54,8 @@ describe("Class service", () => {
       studentPassword,
     );
 
-    await expect(classService.createClass(classData, student_user, subjectId)).rejects
+    await expect(classService.createClass(classData, student_user, subjectId))
+      .rejects
       .toThrow(
         "Only professors can create classes",
       );

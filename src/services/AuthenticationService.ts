@@ -2,9 +2,9 @@ import bcrypt from "bcrypt";
 import { JWTPayload, jwtVerify, SignJWT } from "jose";
 import { JWSInvalid } from "jose/errors";
 import {
-    password as passwordTable,
-    salt as saltTable,
-    user as userTable,
+  password as passwordTable,
+  salt as saltTable,
+  user as userTable,
 } from "../database/schema.ts";
 import { IDatabase } from "../interfaces/IDatabase.ts";
 import { IUser } from "../interfaces/IUser.ts";

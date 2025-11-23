@@ -6,6 +6,20 @@ export function createClassRoutes(services: Services): Router {
   const router = Router();
   const { classService, jwtMiddleware } = services;
 
+  router.get(
+    "/",
+    jwtMiddleware.validateToken,
+    asyncHandler(async (_req, res) => {
+      const classes = await classService.getAllClasses();
+
+      res.status(200).json(classes.map((classData) => ({
+        id: classData.id,
+        name: classData.name,
+        subjectId: classData.subjectId,
+      })));
+    }),
+  );
+
   router.post(
     "/",
     jwtMiddleware.validateToken,

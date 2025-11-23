@@ -50,6 +50,29 @@ export function createSubjectRoutes(services: Services): Router {
   );
 
   router.get(
+    "/professor/my-subjects",
+    jwtMiddleware.validateToken,
+    asyncHandler(async (req, res) => {
+      // @ts-ignore - req.user is added by the JWT middleware and includes role from verifyJWT
+      const user = req.user;
+
+      if (!user || !("role" in user) || user.role !== "PROFESSOR") {
+        throw createError("Only professors can access this endpoint", 403);
+      }
+
+      const subjects = await subjectService.getSubjectsByProfessorId(user.id);
+
+      res.status(200).json(subjects.map((subject) => ({
+        id: subject.id,
+        name: subject.name,
+        description: subject.description,
+        color: subject.color,
+        accentColor: subject.accentColor,
+      })));
+    }),
+  );
+
+  router.get(
     "/:id",
     jwtMiddleware.validateToken,
     asyncHandler(async (req, res) => {

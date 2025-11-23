@@ -2,13 +2,16 @@ import { subject as subjectTable } from "../database/schema.ts";
 import { IDatabase } from "../interfaces/IDatabase.ts";
 import { ISubject } from "../interfaces/ISubject.ts";
 import { subjectSchema } from "../schemas/zodSchema.ts";
+import { ClassService } from "./ClassService.ts";
 import { validateData } from "./decorators.ts";
 
 export class SubjectService {
   private db: IDatabase;
+  private classService: ClassService;
 
-  constructor(db: IDatabase) {
+  constructor(db: IDatabase, classService: ClassService) {
     this.db = db;
+    this.classService = classService;
   }
 
   @validateData(subjectSchema)
@@ -52,5 +55,32 @@ export class SubjectService {
   async getSubjectById(id: number): Promise<ISubject | null> {
     const subjects = await this.db.selectByField(subjectTable, "id", id);
     return subjects.length > 0 ? subjects[0] : null;
+  }
+
+  async getSubjectsByProfessorId(professorId: number): Promise<ISubject[]> {
+    // Get all classes owned by the professor using ClassService
+    const professorClasses = await this.classService.getClassesByOwnerId(
+      professorId,
+    );
+
+    if (professorClasses.length === 0) {
+      return [];
+    }
+
+    // Get unique subject IDs from the professor's classes
+    const subjectIds = [
+      ...new Set(professorClasses.map((cls) => cls.subjectId)),
+    ];
+
+    // Fetch all subjects that the professor has classes for
+    const subjects: ISubject[] = [];
+    for (const subjectId of subjectIds) {
+      const subject = await this.getSubjectById(subjectId);
+      if (subject) {
+        subjects.push(subject);
+      }
+    }
+
+    return subjects;
   }
 }

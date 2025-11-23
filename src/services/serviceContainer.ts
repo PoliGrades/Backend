@@ -9,6 +9,7 @@ import { SubjectService } from "../services/SubjectService.ts";
 import { TaskAttachmentService } from "../services/TaskAttachmentService.ts";
 import { TaskService } from "../services/TaskService.ts";
 import { WarningService } from "../services/WarningService.ts";
+import { SubmissionAttachmentService } from "./SubmissionAttachmentService.ts";
 
 export interface Services {
   db: IDatabase;
@@ -49,10 +50,16 @@ export function createServices(
   const chatService = new ChatService();
   const warningService = new WarningService();
   const taskAttachmentService = new TaskAttachmentService();
+  const submissionAttachmentService = new SubmissionAttachmentService();
 
   const classService = new ClassService(db);
-  const taskService = new TaskService(db, classService, taskAttachmentService);
-  const subjectService = new SubjectService(db);
+  const taskService = new TaskService(
+    db,
+    classService,
+    taskAttachmentService,
+    submissionAttachmentService,
+  );
+  const subjectService = new SubjectService(db, classService);
 
   return {
     db,

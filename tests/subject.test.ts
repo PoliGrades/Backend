@@ -4,17 +4,20 @@ import { MockDatabase } from "../src/database/MockDatabase.ts";
 import { generateMockSubject } from "../src/mocks/Subject.ts";
 import { generateMockPassword, generateMockUser } from "../src/mocks/User.ts";
 import { AuthenticationService } from "../src/services/AuthenticationService.ts";
+import { ClassService } from "../src/services/ClassService.ts";
 import { SubjectService } from "../src/services/SubjectService.ts";
 
 describe("Subject service", () => {
   let db: MockDatabase;
 
   let subjectService: SubjectService;
+  let classService: ClassService;
 
   beforeAll(async () => {
     db = new MockDatabase();
     const authenticationService = new AuthenticationService(db);
-    subjectService = new SubjectService(db);
+    classService = new ClassService(db);
+    subjectService = new SubjectService(db, classService);
 
     const newUser = generateMockUser("PROFESSOR");
     const userPassword = generateMockPassword();
@@ -28,7 +31,7 @@ describe("Subject service", () => {
     const newSubjectId = await subjectService.createSubject(subjectData);
 
     const newSubject = await subjectService.getSubjectById(newSubjectId);
-    
+
     expect(newSubject).toBeDefined();
     expect(newSubject?.name).toBe(subjectData.name);
   });
@@ -37,7 +40,7 @@ describe("Subject service", () => {
     for (let i = 0; i < 3; i++) {
       await subjectService.createSubject(generateMockSubject());
     }
-   
+
     const subjects = await subjectService.getAllSubjects();
 
     expect(subjects).toBeDefined();

@@ -94,5 +94,47 @@ export function createTaskRoutes(
     }),
   );
 
+  router.post(
+    "/:id/submit",
+    upload.array("attachments"),
+    jwtMiddleware.validateToken,
+    asyncHandler(async (req, res) => {
+      const taskId = Number(req.params.id);
+      const files = req.files as Express.Multer.File[];
+
+      await taskService.submitTask(
+        taskId,
+        req.user!.id,
+        files,
+      );
+
+      res.status(200).json({ message: "Submission successful" });
+    }),
+  );
+
+  router.get(
+    "/:id/submissions",
+    jwtMiddleware.validateToken,
+    asyncHandler(async (req, res) => {
+      const taskId = Number(req.params.id);
+      const submissions = await taskService.getTaskSubmissions(taskId);
+
+      res.status(200).json(submissions);
+    }),
+  );
+
+  router.post(
+    "/:id/grade",
+    jwtMiddleware.validateToken,
+    asyncHandler(async (req, res) => {
+      const submissionId = Number(req.params.id);
+      const { grade } = req.body;
+
+      await taskService.gradeSubmission(submissionId, grade, req.user!.id);
+
+      res.status(200).json({ message: "Grading successful" });
+    }),
+  );
+
   return router;
 }
