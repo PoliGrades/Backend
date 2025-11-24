@@ -82,6 +82,7 @@ export const submission = pgTable("submission", {
   submittedAt: timestamp("submitted_at").notNull().defaultNow(),
   graded: boolean("graded").notNull().default(false),
   grade: decimal("grade"),
+  feedback: text("feedback"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });

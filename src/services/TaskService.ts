@@ -161,11 +161,18 @@ export class TaskService {
     const tasks: ITask[] = [];
 
     for (const cls of enrolledClasses) {
-      const classTasks = await this.getTasksByClassId(cls.id, userId);
+      const classTasks = await this.getTasksByClassId(cls.classId, userId);
+
       tasks.push(...classTasks);
     }
 
-    return tasks;
+    return tasks.map((task) => ({
+      id: task.id,
+      classId: task.classId,
+      title: task.title,
+      description: task.description,
+      dueDate: task.dueDate,
+    } as ITask));
   }
 
   async updateTask(
@@ -238,18 +245,7 @@ export class TaskService {
     //   throw new Error("Student is not enrolled in this class.");
     // }
 
-    if (attachments && attachments.length > 0) {
-      await this.submissionAttachmentService?.addSubmissionAttachment(
-        {
-          submissionId: taskId,
-          fileName: attachments[0].originalname,
-          filePath: attachments[0].path,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        } as ISubmissionAttachment,
-      );
-    }
-
+    
     const newSubmission = await this.db.insert(submissionTable, {
       taskId,
       studentId,
@@ -259,6 +255,18 @@ export class TaskService {
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
+    
+    if (attachments && attachments.length > 0) {
+      await this.submissionAttachmentService?.addSubmissionAttachment(
+        {
+          submissionId: newSubmission.id,
+          fileName: attachments[0].originalname,
+          filePath: attachments[0].path,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as ISubmissionAttachment,
+      );
+    }
 
     const submissionData = await this.db.select(
       submissionTable,
@@ -281,6 +289,7 @@ export class TaskService {
     submissionId: number,
     grade: number,
     userId: number,
+    feedback?: string,
   ): Promise<void> {
     const submission = await this.db.select(submissionTable, submissionId);
 
@@ -305,20 +314,35 @@ export class TaskService {
     await this.db.update(submissionTable, submissionId, {
       graded: true,
       grade: grade,
+      feedback: feedback,
       updatedAt: new Date(),
     } as any);
   }
 
-  async getTaskSubmissions(taskId: number): Promise<ISubmission[]> {
+  async getTaskSubmissions(taskId: number): Promise<ISubmission[] & { attachments: ISubmissionAttachment[] }[]> {
     const submissions = await this.db.selectByField(submissionTable, "taskId", taskId);
 
-    return submissions.map((submission) => ({
+    const submissionAttachmentsPromises = submissions.map((submission) =>
+      this.submissionAttachmentService!
+        .getSubmissionAttachmentsBySubmissionId(submission.id)
+    );
+
+    const submissionAttachmentsArray = await Promise.all(
+      submissionAttachmentsPromises,
+    );
+
+    return submissions.map((submission, index) => ({
       id: submission.id,
       taskId: submission.taskId,
       studentId: submission.studentId,
+      hasAttachment: submission.hasAttachment,
       submittedAt: submission.submittedAt,
       graded: submission.graded,
       grade: submission.grade,
-    } as ISubmission));
+      feedback: submission.feedback,
+      createdAt: submission.createdAt,
+      updatedAt: submission.updatedAt,
+      attachments: submissionAttachmentsArray[index],
+    }));
   }
 }

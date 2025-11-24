@@ -4,7 +4,6 @@ import { createAuthRoutes } from "./auth.ts";
 import { createClassRoutes } from "./classes.ts";
 import { createEnrollmentRoutes } from "./enrollments.ts";
 import { createFileRoutes } from "./files.ts";
-import { createGradeRoutes } from "./grades.ts";
 import { createSubjectRoutes } from "./subjects.ts";
 import { createTaskRoutes } from "./tasks.ts";
 import { createUserRoutes } from "./users.ts";
@@ -45,11 +44,6 @@ export function setupRoutes(
   const warningRouter = createWarningRoutes(services);
   app.use("/warning", warningRouter);
   app.use("/warnings", warningRouter);
-
-  // Grade routes
-  const gradeRouter = createGradeRoutes(services);
-  app.use("/grade", gradeRouter);
-  app.use("/grades", gradeRouter);
 
   // File routes
   const fileRouter = createFileRoutes();

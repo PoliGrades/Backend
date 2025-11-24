@@ -6,6 +6,7 @@ export interface ISubmission {
   submittedAt: Date;
   graded: boolean;
   grade: string | null;
+  feedback?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

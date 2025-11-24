@@ -128,9 +128,9 @@ export function createTaskRoutes(
     jwtMiddleware.validateToken,
     asyncHandler(async (req, res) => {
       const submissionId = Number(req.params.id);
-      const { grade } = req.body;
+      const { grade, feedback } = req.body;
 
-      await taskService.gradeSubmission(submissionId, grade, req.user!.id);
+      await taskService.gradeSubmission(submissionId, grade, req.user!.id, feedback);
 
       res.status(200).json({ message: "Grading successful" });
     }),
