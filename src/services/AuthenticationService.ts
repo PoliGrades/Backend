@@ -15,10 +15,11 @@ export class AuthenticationService {
   private db: IDatabase;
   private secretKey: Uint8Array;
 
-  constructor(db: IDatabase) {
+  constructor(db: IDatabase, secretKey?: string) {
     this.db = db;
 
-    this.secretKey = new TextEncoder().encode("poli_grades");
+    const key = secretKey || Deno.env.get("SECRET_KEY") || "poli_grades";
+    this.secretKey = new TextEncoder().encode(key);
   }
 
   @validateData(userSchema)

@@ -1,20 +1,33 @@
-import { task as taskTable } from "../database/schema.ts";
+import {
+  submission as submissionTable,
+  task as taskTable
+} from "../database/schema.ts";
 import { IDatabase } from "../interfaces/IDatabase.ts";
+import { ISubmission } from "../interfaces/ISubmission.ts";
+import { ISubmissionAttachment } from "../interfaces/ISubmissionAttachment.ts";
 import { ITask } from "../interfaces/ITask.ts";
 import { ITaskAttachment } from "../interfaces/ITaskAttachment.ts";
 import { taskSchema } from "../schemas/zodSchema.ts";
 import { ClassService } from "./ClassService.ts";
 import { validateData } from "./decorators.ts";
+import { SubmissionAttachmentService } from "./SubmissionAttachmentService.ts";
 import { TaskAttachmentService } from "./TaskAttachmentService.ts";
 
 export class TaskService {
   private db: IDatabase;
   private classService: ClassService;
   private taskAttachmentService?: TaskAttachmentService;
+  private submissionAttachmentService?: SubmissionAttachmentService;
 
-  constructor(db: IDatabase, classService?: ClassService, taskAttachmentService?: TaskAttachmentService) {
+  constructor(
+    db: IDatabase,
+    classService?: ClassService,
+    taskAttachmentService?: TaskAttachmentService,
+    submissionAttachmentService?: SubmissionAttachmentService,
+  ) {
     this.db = db;
-    this.taskAttachmentService = taskAttachmentService
+    this.taskAttachmentService = taskAttachmentService;
+    this.submissionAttachmentService = submissionAttachmentService;
     this.classService = classService || new ClassService(db);
   }
 
@@ -65,7 +78,8 @@ export class TaskService {
       };
     }
 
-    const attachments = await this.taskAttachmentService!.getTaskAttachmentsByTaskId(newTaskId.id);
+    const attachments = await this.taskAttachmentService!
+      .getTaskAttachmentsByTaskId(newTaskId.id);
 
     return {
       ...createdTask,
@@ -92,7 +106,10 @@ export class TaskService {
     return tasks;
   }
 
-  async getTaskById(taskId: number, userId: number): Promise<ITask & { attachments: ITaskAttachment[] } | null> {
+  async getTaskById(
+    taskId: number,
+    userId: number,
+  ): Promise<ITask & { attachments: ITaskAttachment[] } | null> {
     const task = await this.db.select(taskTable, taskId);
 
     if (!task) {
@@ -112,9 +129,11 @@ export class TaskService {
     let attachments: ITaskAttachment[] = [];
 
     if (task.hasAttachment && this.taskAttachmentService) {
-      attachments = await this.taskAttachmentService.getTaskAttachmentsByTaskId(task.id);
+      attachments = await this.taskAttachmentService.getTaskAttachmentsByTaskId(
+        task.id,
+      );
     }
-    
+
     return {
       ...task,
       attachments: attachments,
@@ -134,24 +153,26 @@ export class TaskService {
   }
 
   async getAllTasksForUser(userId: number): Promise<ITask[]> {
-  //   // Find all classes the user is enrolled in or owns
-  //   const ownedClasses = await this.classService.getClassesByOwnerId(userId);
-  //   const enrolledClassesPromises = ownedClasses.map((cls) =>
-  //     this.classService.
-  //   );
-  //   const enrolledClasses = await Promise.all(enrolledClassesPromises);
+    // Find all classes the user is enrolled in
+    const enrolledClasses = await this.classService.getEnrollmentsByStudentId(
+      userId,
+    );
 
-  //   // Combine owned and enrolled classes
-  //   const allClasses = [...ownedClasses, ...enrolledClasses.flat()];
+    const tasks: ITask[] = [];
 
-  //   // Find all tasks for the combined classes
-  //   const tasksPromises = allClasses.map((cls) =>
-  //     this.getTasksByClassId(cls.id, userId)
-  //   );
-  //   const tasks = await Promise.all(tasksPromises);
+    for (const cls of enrolledClasses) {
+      const classTasks = await this.getTasksByClassId(cls.classId, userId);
 
-  //   return tasks.flat();
-    return [];
+      tasks.push(...classTasks);
+    }
+
+    return tasks.map((task) => ({
+      id: task.id,
+      classId: task.classId,
+      title: task.title,
+      description: task.description,
+      dueDate: task.dueDate,
+    } as ITask));
   }
 
   async updateTask(
@@ -202,5 +223,126 @@ export class TaskService {
     }
 
     await this.db.delete(taskTable, taskId);
+  }
+
+  async submitTask(
+    taskId: number,
+    studentId: number,
+    attachments: Express.Multer.File[],
+  ): Promise<ISubmission & { attachments: ISubmissionAttachment[] }> {
+    const existingTask = await this.db.select(taskTable, taskId);
+
+    if (!existingTask) {
+      throw new Error("Task not found");
+    }
+
+    // const isEnrolled = await this.classService.isStudentEnrolled(
+    //   existingTask.classId,
+    //   studentId,
+    // );
+
+    // if (!isEnrolled) {
+    //   throw new Error("Student is not enrolled in this class.");
+    // }
+
+    
+    const newSubmission = await this.db.insert(submissionTable, {
+      taskId,
+      studentId,
+      hasAttachment: attachments.length > 0,
+      submittedAt: new Date(),
+      graded: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+    
+    if (attachments && attachments.length > 0) {
+      await this.submissionAttachmentService?.addSubmissionAttachment(
+        {
+          submissionId: newSubmission.id,
+          fileName: attachments[0].originalname,
+          filePath: attachments[0].path,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as ISubmissionAttachment,
+      );
+    }
+
+    const submissionData = await this.db.select(
+      submissionTable,
+      newSubmission.id,
+    );
+    if (!submissionData) {
+      throw new Error("There was an error creating your submission");
+    }
+
+    const submittedAttachments = await this.submissionAttachmentService!
+      .getSubmissionAttachmentsBySubmissionId(newSubmission.id);
+
+    return {
+      ...submissionData,
+      attachments: submittedAttachments,
+    };
+  }
+
+  async gradeSubmission(
+    submissionId: number,
+    grade: number,
+    userId: number,
+    feedback?: string,
+  ): Promise<void> {
+    const submission = await this.db.select(submissionTable, submissionId);
+
+    if (!submission) {
+      throw new Error("Submission not found");
+    }
+
+    const task = await this.db.select(taskTable, submission.taskId);
+
+    if (!task) {
+      throw new Error("Task not found");
+    }
+
+    const classInfo = await this.classService.getClassById(task.classId);
+
+    if (!classInfo || classInfo.ownerId !== userId) {
+      throw new Error(
+        "User does not have permission to grade this submission.",
+      );
+    }
+
+    await this.db.update(submissionTable, submissionId, {
+      graded: true,
+      grade: grade,
+      feedback: feedback,
+      updatedAt: new Date(),
+    } as any);
+  }
+
+  async getTaskSubmissions(taskId: number): Promise<ISubmission[] & { attachments: ISubmissionAttachment[] }[]> {
+    const submissions = await this.db.selectByField(submissionTable, "taskId", taskId);
+
+    const submissionAttachmentsPromises = submissions.map((submission) =>
+      this.submissionAttachmentService!
+        .getSubmissionAttachmentsBySubmissionId(submission.id)
+    );
+
+    const submissionAttachmentsArray = await Promise.all(
+      submissionAttachmentsPromises,
+    );
+
+    return submissions.map((submission, index) => ({
+      id: submission.id,
+      taskId: submission.taskId,
+      studentId: submission.studentId,
+      hasAttachment: submission.hasAttachment,
+      submittedAt: submission.submittedAt,
+      graded: submission.graded,
+      grade: submission.grade,
+      feedback: submission.feedback,
+      createdAt: submission.createdAt,
+      updatedAt: submission.updatedAt,
+      attachments: submissionAttachmentsArray[index],
+    }));
   }
 }

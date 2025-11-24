@@ -74,11 +74,15 @@ export const task = pgTable("task", {
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });
 
-export const grade = pgTable("grade", {
+export const submission = pgTable("submission", {
   id: serial("id").primaryKey(),
   taskId: serial("task_id").references(() => task.id),
   studentId: serial("student_id").references(() => user.id),
-  grade: decimal("grade").notNull(),
+  hasAttachment: boolean("has_attachment").notNull().default(false),
+  submittedAt: timestamp("submitted_at").notNull().defaultNow(),
+  graded: boolean("graded").notNull().default(false),
+  grade: decimal("grade"),
+  feedback: text("feedback"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().$onUpdate(() => new Date()),
 });

@@ -20,7 +20,8 @@ describe("Task service", () => {
   beforeAll(async () => {
     db = new MockDatabase();
     const authenticationService = new AuthenticationService(db);
-    const subjectService = new SubjectService(db);
+    classService = new ClassService(db);
+    const subjectService = new SubjectService(db, classService);
 
     const newUser = generateMockUser("PROFESSOR");
     const userPassword = generateMockPassword();
@@ -36,7 +37,7 @@ describe("Task service", () => {
     invisibleClassId = await classService.createClass(
       generateMockClass(userId),
       userId,
-      subjectId
+      subjectId,
     ); // Create a second class to test task visibility
   });
 
